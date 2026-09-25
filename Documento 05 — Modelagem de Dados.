@@ -1,0 +1,1083 @@
+Vamos avançar para o **Documento 05 — Modelagem de Dados**. A estrutura abaixo mantém o sistema simples no núcleo operacional, mas já prepara a base para indicadores, KPIs, auditoria, análise histórica e futura Ciência de Dados.
+
+# DOCUMENTO 05 — MODELAGEM DE DADOS
+
+**Projeto:** Sistema Inteligente de Conferência de Materiais — SICM
+**Versão:** 0.1
+**Objetivo:** Definir a estrutura de dados necessária para suportar a operação de conferência de materiais, rastreabilidade, automação, indicadores, KPIs logísticos, produtividade, Analytics e futura aplicação de Ciência de Dados.
+
+---
+
+## 1. Objetivo da Modelagem
+
+A modelagem de dados deve permitir que o SICM registre de forma estruturada:
+
+* usuários;
+* materiais;
+* fornecedores;
+* locais;
+* documentos de entrada;
+* itens esperados;
+* conferências;
+* itens conferidos;
+* divergências;
+* evidências;
+* eventos operacionais;
+* sincronizações;
+* histórico das operações.
+
+A estrutura também deverá permitir que os indicadores sejam **calculados a partir dos dados operacionais**, evitando a criação de uma tabela específica para cada KPI.
+
+### Princípio central
+
+> **A operação gera dados → os dados geram indicadores → os indicadores geram análises → as análises apoiam decisões e melhorias.**
+
+---
+
+# 2. Arquitetura Conceitual dos Dados
+
+O modelo será dividido conceitualmente em quatro grupos:
+
+### 2.1 Dados cadastrais
+
+Informações relativamente estáveis:
+
+* usuários;
+* materiais;
+* fornecedores;
+* locais;
+* dispositivos.
+
+### 2.2 Dados operacionais
+
+Informações geradas durante a operação:
+
+* documentos de entrada;
+* itens dos documentos;
+* conferências;
+* itens conferidos;
+* divergências;
+* evidências.
+
+### 2.3 Dados de rastreabilidade
+
+Informações utilizadas para saber:
+
+* quem realizou;
+* quando realizou;
+* onde realizou;
+* qual operação realizou;
+* qual dispositivo utilizou;
+* se a operação ocorreu online ou offline;
+* quando os dados foram sincronizados.
+
+### 2.4 Dados analíticos
+
+Serão derivados dos dados operacionais.
+
+Exemplos:
+
+* produtividade;
+* tempo médio;
+* taxa de divergência;
+* taxa de conformidade;
+* retrabalho;
+* intervenção humana;
+* desempenho por fornecedor;
+* desempenho por material;
+* gargalos operacionais.
+
+---
+
+# 3. Entidades Principais
+
+O modelo inicial terá as seguintes entidades:
+
+| Entidade           | Finalidade                                |
+| ------------------ | ----------------------------------------- |
+| USUARIO            | Controlar usuários do sistema             |
+| PERFIL             | Definir permissões                        |
+| MATERIAL           | Cadastro dos materiais                    |
+| FORNECEDOR         | Cadastro dos fornecedores                 |
+| LOCAL              | Locais de operação                        |
+| DISPOSITIVO        | Dispositivos utilizados                   |
+| DOCUMENTO_ENTRADA  | Documento que originou a conferência      |
+| ITEM_DOCUMENTO     | Materiais esperados no documento          |
+| CONFERENCIA        | Controle da conferência                   |
+| ITEM_CONFERENCIA   | Resultado da conferência de cada material |
+| DIVERGENCIA        | Registro das divergências                 |
+| EVIDENCIA          | Fotos e demais evidências                 |
+| EVENTO_OPERACIONAL | Rastreamento das operações                |
+| SINCRONIZACAO      | Controle das operações offline/online     |
+
+---
+
+# 4. Entidade USUARIO
+
+Representa as pessoas que utilizam o sistema.
+
+### Campos principais
+
+| Campo         | Tipo conceitual | Regra               |
+| ------------- | --------------- | ------------------- |
+| id_usuario    | UUID            | PK                  |
+| nome          | texto           | Obrigatório         |
+| email         | texto           | Obrigatório e único |
+| senha_hash    | texto           | Obrigatório         |
+| id_perfil     | UUID            | FK                  |
+| ativo         | booleano        | Obrigatório         |
+| criado_em     | data/hora       | Obrigatório         |
+| atualizado_em | data/hora       | Obrigatório         |
+
+### Observação
+
+A senha nunca deverá ser armazenada em texto puro.
+
+---
+
+# 5. Entidade PERFIL
+
+Define o nível de acesso do usuário.
+
+Perfis iniciais:
+
+* ADMINISTRADOR;
+* SUPERVISOR;
+* CONFERENTE.
+
+### Campos
+
+| Campo     | Tipo conceitual | Regra       |
+| --------- | --------------- | ----------- |
+| id_perfil | UUID            | PK          |
+| nome      | texto           | Único       |
+| descricao | texto           | Opcional    |
+| ativo     | booleano        | Obrigatório |
+
+---
+
+# 6. Entidade MATERIAL
+
+Representa os materiais controlados pelo sistema.
+
+### Campos
+
+| Campo          | Tipo conceitual | Regra               |
+| -------------- | --------------- | ------------------- |
+| id_material    | UUID            | PK                  |
+| codigo         | texto           | Obrigatório e único |
+| descricao      | texto           | Obrigatório         |
+| unidade_medida | texto           | Obrigatório         |
+| ativo          | booleano        | Obrigatório         |
+| criado_em      | data/hora       | Obrigatório         |
+| atualizado_em  | data/hora       | Obrigatório         |
+
+O campo `codigo` poderá representar o código utilizado para identificação do material.
+
+No futuro poderá existir mais de um código por material, caso a operação necessite trabalhar com diferentes identificadores.
+
+---
+
+# 7. Entidade FORNECEDOR
+
+Representa o fornecedor responsável pelo material/documento.
+
+### Campos
+
+| Campo         | Tipo conceitual | Regra       |
+| ------------- | --------------- | ----------- |
+| id_fornecedor | UUID            | PK          |
+| razao_social  | texto           | Obrigatório |
+| nome_fantasia | texto           | Opcional    |
+| documento     | texto           | Obrigatório |
+| ativo         | booleano        | Obrigatório |
+| criado_em     | data/hora       | Obrigatório |
+| atualizado_em | data/hora       | Obrigatório |
+
+---
+
+# 8. Entidade LOCAL
+
+Representa o local onde ocorre a operação.
+
+### Campos
+
+| Campo     | Tipo conceitual | Regra       |
+| --------- | --------------- | ----------- |
+| id_local  | UUID            | PK          |
+| nome      | texto           | Obrigatório |
+| descricao | texto           | Opcional    |
+| endereco  | texto           | Opcional    |
+| ativo     | booleano        | Obrigatório |
+
+O modelo poderá posteriormente ser expandido para:
+
+* empresa;
+* filial;
+* armazém;
+* depósito;
+* doca;
+* setor;
+* endereço logístico.
+
+---
+
+# 9. Entidade DISPOSITIVO
+
+Representa o equipamento utilizado na operação mobile.
+
+### Campos
+
+| Campo               | Tipo conceitual | Regra       |
+| ------------------- | --------------- | ----------- |
+| id_dispositivo      | UUID            | PK          |
+| identificador       | texto           | Único       |
+| tipo                | texto           | Obrigatório |
+| sistema_operacional | texto           | Opcional    |
+| ativo               | booleano        | Obrigatório |
+| ultimo_acesso       | data/hora       | Opcional    |
+
+Essa entidade será importante para análise de problemas relacionados ao equipamento e para rastreabilidade.
+
+---
+
+# 10. Entidade DOCUMENTO_ENTRADA
+
+Representa o documento que originou a necessidade de conferência.
+
+Pode ser originado, por exemplo, por:
+
+* pedido;
+* nota fiscal;
+* XML;
+* documento interno;
+* integração futura.
+
+### Campos
+
+| Campo            | Tipo conceitual | Regra       |
+| ---------------- | --------------- | ----------- |
+| id_documento     | UUID            | PK          |
+| numero_documento | texto           | Obrigatório |
+| tipo_documento   | texto           | Obrigatório |
+| id_fornecedor    | UUID            | FK          |
+| id_local         | UUID            | FK          |
+| data_documento   | data            | Obrigatório |
+| data_recebimento | data/hora       | Opcional    |
+| origem           | texto           | Obrigatório |
+| status           | texto           | Obrigatório |
+| criado_em        | data/hora       | Obrigatório |
+
+---
+
+# 11. Entidade ITEM_DOCUMENTO
+
+Representa cada material esperado no documento.
+
+### Campos
+
+| Campo               | Tipo conceitual | Regra       |
+| ------------------- | --------------- | ----------- |
+| id_item_documento   | UUID            | PK          |
+| id_documento        | UUID            | FK          |
+| id_material         | UUID            | FK          |
+| quantidade_esperada | decimal         | Obrigatório |
+| unidade_medida      | texto           | Obrigatório |
+
+### Relacionamento
+
+Um documento pode possuir vários itens.
+
+**DOCUMENTO_ENTRADA 1:N ITEM_DOCUMENTO**
+
+---
+
+# 12. Entidade CONFERENCIA
+
+Representa uma execução de conferência.
+
+### Campos
+
+| Campo                  | Tipo conceitual | Regra       |
+| ---------------------- | --------------- | ----------- |
+| id_conferencia         | UUID            | PK          |
+| id_documento           | UUID            | FK          |
+| id_local               | UUID            | FK          |
+| id_usuario_responsavel | UUID            | FK          |
+| id_dispositivo         | UUID            | FK          |
+| status                 | texto           | Obrigatório |
+| origem                 | texto           | Obrigatório |
+| inicio_em              | data/hora       | Opcional    |
+| finalizado_em          | data/hora       | Opcional    |
+| criado_em              | data/hora       | Obrigatório |
+| atualizado_em          | data/hora       | Obrigatório |
+
+### Status possíveis
+
+* CRIADA
+* AGUARDANDO
+* ATRIBUIDA
+* EM_CONFERENCIA
+* AGUARDANDO_ANALISE
+* EM_ANALISE
+* CONCLUIDA
+* CANCELADA
+* BLOQUEADA
+* COM_ERRO
+
+---
+
+# 13. Entidade ITEM_CONFERENCIA
+
+É uma das entidades mais importantes do sistema.
+
+Representa o resultado da conferência de cada material.
+
+### Campos
+
+| Campo               | Tipo conceitual | Regra       |
+| ------------------- | --------------- | ----------- |
+| id_item_conferencia | UUID            | PK          |
+| id_conferencia      | UUID            | FK          |
+| id_item_documento   | UUID            | FK          |
+| id_material         | UUID            | FK          |
+| quantidade_esperada | decimal         | Obrigatório |
+| quantidade_recebida | decimal         | Obrigatório |
+| diferenca           | decimal         | Calculado   |
+| status              | texto           | Obrigatório |
+| identificado_em     | data/hora       | Opcional    |
+| conferido_em        | data/hora       | Opcional    |
+
+### Status possíveis
+
+* PENDENTE
+* CONFORME
+* DIVERGENTE
+* NÃO_ENCONTRADO
+* CANCELADO
+
+---
+
+# 14. Cálculo da Divergência de Quantidade
+
+A diferença deverá ser derivada dos dados da operação:
+
+**Diferença = Quantidade Recebida − Quantidade Esperada**
+
+Exemplo:
+
+Quantidade esperada: 100
+Quantidade recebida: 95
+
+Resultado:
+
+**95 − 100 = -5**
+
+A interpretação será:
+
+**5 unidades abaixo do esperado.**
+
+Não é necessário criar um campo separado para cada tipo de diferença.
+
+---
+
+# 15. Entidade DIVERGENCIA
+
+Representa uma ocorrência encontrada durante a conferência.
+
+### Campos
+
+| Campo                | Tipo conceitual | Regra       |
+| -------------------- | --------------- | ----------- |
+| id_divergencia       | UUID            | PK          |
+| id_item_conferencia  | UUID            | FK          |
+| tipo                 | texto           | Obrigatório |
+| descricao            | texto           | Opcional    |
+| status               | texto           | Obrigatório |
+| id_usuario_criacao   | UUID            | FK          |
+| id_usuario_analise   | UUID            | FK          |
+| criada_em            | data/hora       | Obrigatório |
+| analisada_em         | data/hora       | Opcional    |
+| resolvida_em         | data/hora       | Opcional    |
+| observacao_resolucao | texto           | Opcional    |
+
+### Tipos iniciais
+
+* ITEM_NAO_ENCONTRADO
+* QUANTIDADE_INFERIOR
+* QUANTIDADE_SUPERIOR
+* ITEM_INCORRETO
+* CODIGO_INVALIDO
+* ITEM_NAO_CADASTRADO
+* OUTRA
+
+---
+
+# 16. Entidade EVIDENCIA
+
+Armazena informações relacionadas às evidências da ocorrência.
+
+A principal evidência prevista inicialmente é fotografia.
+
+### Campos
+
+| Campo              | Tipo conceitual | Regra       |
+| ------------------ | --------------- | ----------- |
+| id_evidencia       | UUID            | PK          |
+| id_divergencia     | UUID            | FK          |
+| tipo               | texto           | Obrigatório |
+| arquivo_referencia | texto           | Obrigatório |
+| descricao          | texto           | Opcional    |
+| id_usuario         | UUID            | FK          |
+| criada_em          | data/hora       | Obrigatório |
+
+A imagem propriamente dita poderá ser armazenada em um serviço de arquivos/objetos, enquanto o banco mantém a referência.
+
+---
+
+# 17. Entidade EVENTO_OPERACIONAL
+
+Essa entidade será fundamental para Analytics, auditoria e futura Ciência de Dados.
+
+Cada evento relevante da operação poderá gerar um registro.
+
+### Campos
+
+| Campo               | Tipo conceitual | Regra       |
+| ------------------- | --------------- | ----------- |
+| id_evento           | UUID            | PK          |
+| tipo_evento         | texto           | Obrigatório |
+| id_usuario          | UUID            | FK          |
+| id_conferencia      | UUID            | FK          |
+| id_item_conferencia | UUID            | FK          |
+| id_material         | UUID            | FK          |
+| id_local            | UUID            | FK          |
+| id_dispositivo      | UUID            | FK          |
+| origem              | texto           | Obrigatório |
+| criado_em           | data/hora       | Obrigatório |
+| sincronizado_em     | data/hora       | Opcional    |
+| dados_evento        | JSON            | Opcional    |
+
+### Eventos iniciais
+
+* CONFERENCIA_CRIADA
+* CONFERENCIA_ATRIBUIDA
+* CONFERENCIA_INICIADA
+* ITEM_IDENTIFICADO
+* ITEM_VALIDADO
+* QUANTIDADE_REGISTRADA
+* ITEM_CONFORME
+* DIVERGENCIA_IDENTIFICADA
+* FOTO_REGISTRADA
+* DIVERGENCIA_ANALISADA
+* DIVERGENCIA_RESOLVIDA
+* CONFERENCIA_FINALIZADA
+* SINCRONIZACAO_REALIZADA
+
+---
+
+# 18. Entidade SINCRONIZACAO
+
+Controla operações realizadas offline no dispositivo.
+
+### Campos
+
+| Campo                | Tipo conceitual | Regra       |
+| -------------------- | --------------- | ----------- |
+| id_sincronizacao     | UUID            | PK          |
+| id_dispositivo       | UUID            | FK          |
+| iniciado_em          | data/hora       | Obrigatório |
+| finalizado_em        | data/hora       | Opcional    |
+| status               | texto           | Obrigatório |
+| quantidade_registros | inteiro         | Obrigatório |
+| quantidade_sucesso   | inteiro         | Obrigatório |
+| quantidade_erro      | inteiro         | Obrigatório |
+| mensagem_erro        | texto           | Opcional    |
+
+### Status
+
+* INICIADA
+* CONCLUIDA
+* PARCIAL
+* ERRO
+
+---
+
+# 19. Relacionamentos Principais
+
+A estrutura conceitual pode ser representada da seguinte maneira:
+
+```text
+PERFIL
+   │
+   └── 1:N ── USUARIO
+                 │
+                 ├── 1:N ── CONFERENCIA
+                 │
+                 ├── 1:N ── EVENTO_OPERACIONAL
+                 │
+                 └── 1:N ── EVIDENCIA
+
+
+FORNECEDOR
+   │
+   └── 1:N ── DOCUMENTO_ENTRADA
+                  │
+                  └── 1:N ── ITEM_DOCUMENTO
+                                 │
+                                 └── N:1 ── MATERIAL
+
+
+DOCUMENTO_ENTRADA
+   │
+   └── 1:N ── CONFERENCIA
+                  │
+                  └── 1:N ── ITEM_CONFERENCIA
+                                 │
+                                 ├── N:1 ── MATERIAL
+                                 │
+                                 └── 1:N ── DIVERGENCIA
+                                               │
+                                               └── 1:N ── EVIDENCIA
+
+
+LOCAL
+   │
+   ├── 1:N ── DOCUMENTO_ENTRADA
+   ├── 1:N ── CONFERENCIA
+   └── 1:N ── EVENTO_OPERACIONAL
+
+
+DISPOSITIVO
+   │
+   ├── 1:N ── CONFERENCIA
+   ├── 1:N ── EVENTO_OPERACIONAL
+   └── 1:N ── SINCRONIZACAO
+```
+
+---
+
+# 20. Modelo Conceitual Simplificado
+
+O núcleo da operação pode ser resumido em:
+
+```text
+FORNECEDOR
+     │
+     ▼
+DOCUMENTO_ENTRADA
+     │
+     ▼
+ITEM_DOCUMENTO
+     │
+     ▼
+CONFERENCIA
+     │
+     ▼
+ITEM_CONFERENCIA
+     │
+     ├──────────────► MATERIAL
+     │
+     ▼
+DIVERGENCIA
+     │
+     ▼
+EVIDENCIA
+```
+
+Paralelamente:
+
+```text
+TODAS AS OPERAÇÕES
+        │
+        ▼
+EVENTO_OPERACIONAL
+        │
+        ▼
+ANALYTICS / KPIs / AUDITORIA
+        │
+        ▼
+CIÊNCIA DE DADOS
+```
+
+---
+
+# 21. Controle de Auditoria
+
+O sistema deverá preservar a rastreabilidade das operações relevantes.
+
+A pergunta que o modelo precisa conseguir responder é:
+
+> **Quem fez o quê, quando, onde, em qual conferência, utilizando qual dispositivo e qual foi o resultado?**
+
+Para isso, os registros relevantes deverão possuir referências para:
+
+* usuário;
+* data/hora;
+* conferência;
+* item;
+* material;
+* local;
+* dispositivo;
+* origem da operação.
+
+---
+
+# 22. Operação Offline
+
+O aplicativo mobile deverá permitir que determinadas operações sejam executadas sem conexão.
+
+Fluxo:
+
+```text
+ONLINE
+   │
+   ▼
+CARREGAR CONFERÊNCIA
+   │
+   ▼
+DISPOSITIVO
+   │
+   ▼
+SEM INTERNET
+   │
+   ▼
+EXECUTAR CONFERÊNCIA
+   │
+   ├── leitura
+   ├── quantidade
+   ├── evidência
+   └── eventos
+   │
+   ▼
+ARMAZENAMENTO LOCAL
+   │
+   ▼
+INTERNET RESTABELECIDA
+   │
+   ▼
+SINCRONIZAÇÃO
+   │
+   ▼
+SERVIDOR
+```
+
+Cada operação deverá possuir um identificador único para reduzir o risco de duplicidade durante a sincronização.
+
+---
+
+# 23. Dados para Analytics
+
+Os KPIs não serão armazenados individualmente como tabelas independentes.
+
+Exemplo:
+
+Não criar:
+
+```text
+KPI_PRODUTIVIDADE
+KPI_DIVERGENCIA
+KPI_FORNECEDOR
+KPI_TEMPO
+```
+
+A abordagem será:
+
+```text
+DADOS OPERACIONAIS
+        │
+        ▼
+CONSULTAS / AGREGAÇÕES
+        │
+        ▼
+INDICADORES
+        │
+        ▼
+DASHBOARDS
+```
+
+Isso permite criar novos indicadores sem alterar toda a estrutura do banco.
+
+---
+
+# 24. Indicadores Derivados do Modelo
+
+Com os dados definidos, será possível calcular:
+
+### Produtividade
+
+* itens por hora;
+* conferências por hora;
+* itens por conferência;
+* tempo médio por item.
+
+### Qualidade
+
+* taxa de conformidade;
+* taxa de divergência;
+* quantidade de divergências;
+* taxa de retrabalho.
+
+### Tempo
+
+* tempo médio de conferência;
+* tempo de espera;
+* tempo de análise;
+* tempo de resolução;
+* lead time operacional.
+
+### Automação
+
+* percentual de conferências aprovadas automaticamente;
+* percentual de intervenções humanas;
+* percentual de exceções;
+* percentual de operações offline.
+
+### Fornecedores
+
+* divergências por fornecedor;
+* conformidade por fornecedor;
+* quantidade recebida por fornecedor;
+* frequência de ocorrências.
+
+### Materiais
+
+* divergências por material;
+* materiais mais conferidos;
+* materiais com maior frequência de ocorrência.
+
+---
+
+# 25. Preparação para Ciência de Dados
+
+O modelo também deverá permitir a criação futura de variáveis para modelos analíticos.
+
+Exemplos:
+
+```text
+quantidade_esperada
+quantidade_recebida
+quantidade_divergente
+tempo_conferencia
+tempo_espera
+fornecedor
+material
+local
+operador
+horario
+dia_semana
+historico_divergencias
+historico_fornecedor
+historico_material
+numero_intervencoes
+numero_retrabalhos
+```
+
+Esses dados poderão posteriormente alimentar:
+
+### Análise descritiva
+
+O que aconteceu?
+
+### Análise diagnóstica
+
+Por que aconteceu?
+
+### Análise preditiva
+
+O que pode acontecer?
+
+### Análise prescritiva
+
+Qual ação pode ser considerada?
+
+A modelagem operacional, entretanto, continuará sendo a fonte primária dos fatos.
+
+---
+
+# 26. Modelo Analítico Futuro
+
+Em uma etapa posterior, poderá ser criado um Data Mart específico para Analytics.
+
+Exemplo conceitual:
+
+```text
+                 DIM_TEMPO
+                     │
+                     │
+DIM_MATERIAL ── FACT_CONFERENCIA ── DIM_FORNECEDOR
+                     │
+                     │
+              DIM_OPERADOR
+                     │
+                     │
+                 DIM_LOCAL
+```
+
+A `FACT_CONFERENCIA` poderá armazenar métricas agregadas para análise.
+
+Exemplos:
+
+* quantidade esperada;
+* quantidade recebida;
+* quantidade divergente;
+* duração;
+* número de itens;
+* número de divergências;
+* número de intervenções;
+* número de retrabalhos.
+
+As dimensões poderão permitir análises por:
+
+* período;
+* material;
+* fornecedor;
+* operador;
+* local.
+
+---
+
+# 27. Princípio de Separação
+
+O projeto deverá preservar uma separação entre:
+
+### Banco operacional
+
+Responsável pela operação diária.
+
+```text
+USUÁRIOS
+MATERIAIS
+FORNECEDORES
+DOCUMENTOS
+CONFERÊNCIAS
+DIVERGÊNCIAS
+EVENTOS
+```
+
+### Camada analítica
+
+Responsável por:
+
+```text
+KPIs
+INDICADORES
+DASHBOARDS
+HISTÓRICOS
+ANÁLISES
+MODELOS DE DADOS
+CIÊNCIA DE DADOS
+```
+
+Essa separação permite que o crescimento da camada analítica não prejudique diretamente a operação do sistema.
+
+---
+
+# 28. Regras de Integridade
+
+O banco deverá garantir, entre outras:
+
+1. Todo usuário deve possuir um perfil válido.
+2. Todo documento deve possuir fornecedor válido quando aplicável.
+3. Todo item de documento deve possuir material válido.
+4. Toda conferência deve estar vinculada a um documento.
+5. Todo item de conferência deve estar vinculado a uma conferência.
+6. Toda divergência deve estar vinculada a um item de conferência.
+7. Toda evidência deve estar vinculada a uma divergência.
+8. Eventos devem possuir identificadores únicos.
+9. Registros críticos não devem ser eliminados de forma indiscriminada.
+10. Alterações relevantes devem manter rastreabilidade.
+
+---
+
+# 29. Estratégia de Identificadores
+
+A arquitetura utilizará identificadores únicos para as entidades principais.
+
+Conceitualmente:
+
+```text
+id_usuario
+id_material
+id_fornecedor
+id_local
+id_documento
+id_item_documento
+id_conferencia
+id_item_conferencia
+id_divergencia
+id_evidencia
+id_evento
+id_sincronizacao
+```
+
+A utilização de identificadores únicos também facilita:
+
+* sincronização offline;
+* integração via API;
+* rastreabilidade;
+* distribuição entre dispositivos;
+* futura integração com outros sistemas.
+
+---
+
+# 30. Estrutura Inicial do Banco
+
+O primeiro banco operacional poderá ser organizado aproximadamente assim:
+
+```text
+perfil
+usuario
+
+material
+fornecedor
+local
+dispositivo
+
+documento_entrada
+item_documento
+
+conferencia
+item_conferencia
+
+divergencia
+evidencia
+
+evento_operacional
+sincronizacao
+```
+
+Essa estrutura representa o **núcleo inicial do SICM**.
+
+Não serão criadas tabelas desnecessárias antes de existir uma necessidade funcional clara.
+
+---
+
+# 31. Diretriz para Implementação
+
+A implementação deverá seguir a sequência:
+
+```text
+1. Criar banco
+       ↓
+2. Criar tabelas cadastrais
+       ↓
+3. Criar documentos e itens
+       ↓
+4. Criar conferências
+       ↓
+5. Criar itens de conferência
+       ↓
+6. Criar divergências
+       ↓
+7. Criar evidências
+       ↓
+8. Criar eventos
+       ↓
+9. Criar sincronização
+       ↓
+10. Criar API
+       ↓
+11. Criar aplicação Web
+       ↓
+12. Criar aplicação Mobile
+       ↓
+13. Criar dashboards
+       ↓
+14. Criar camada analítica
+       ↓
+15. Preparar Ciência de Dados
+```
+
+---
+
+# 32. Decisão Arquitetural
+
+O SICM será construído com uma premissa fundamental:
+
+> **O dado operacional deve nascer correto, rastreável e estruturado para análise.**
+
+Isso significa que Analytics e Ciência de Dados não serão adicionados posteriormente sobre dados desorganizados.
+
+A própria operação será projetada para produzir os dados necessários para:
+
+* medir produtividade;
+* identificar gargalos;
+* medir qualidade;
+* acompanhar fornecedores;
+* acompanhar materiais;
+* medir automação;
+* identificar retrabalho;
+* compreender causas de divergência;
+* construir modelos preditivos no futuro.
+
+---
+
+# 33. Resultado do Documento
+
+Com esta modelagem, o SICM passa a possuir uma base conceitual para:
+
+**Operação**
+
+→ recebimento
+→ identificação
+→ conferência
+→ validação
+→ divergência
+→ resolução
+
+**Rastreabilidade**
+
+→ usuário
+→ dispositivo
+→ horário
+→ local
+→ evento
+→ sincronização
+
+**Gestão**
+
+→ produtividade
+→ qualidade
+→ tempo
+→ fornecedores
+→ materiais
+→ automação
+
+**Inteligência**
+
+→ histórico
+→ análise
+→ padrões
+→ previsão
+→ otimização.
+
+---
+
+## Status
+
+**Documento 05 — Modelagem de Dados: CONCLUÍDO — versão 0.1**
+
+### Próximo documento
+
+**DOCUMENTO 06 — Arquitetura do Sistema**
+
+O próximo documento deverá transformar essa modelagem em uma arquitetura técnica, definindo:
+
+* aplicação Web;
+* aplicação Mobile;
+* API;
+* banco de dados;
+* autenticação;
+* comunicação entre componentes;
+* funcionamento offline;
+* sincronização;
+* armazenamento de imagens;
+* eventos;
+* camada de Analytics;
+* preparação para Data Science;
+* separação entre ambiente operacional e analítico.
+
+A partir desse ponto começaremos a transformar o projeto conceitual em uma **arquitetura de software efetivamente implementável**.
+
+O **Documento 05** fecha a base de dados conceitual. O próximo passo é o **Documento 06 — Arquitetura do Sistema**, onde começamos a definir como essas peças irão conversar entre si.
