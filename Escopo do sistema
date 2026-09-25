@@ -1,0 +1,575 @@
+Sim. E eu recomendo que isso seja tratado como **um dos pilares do SICM**, não como um módulo adicional colocado no final.
+
+A arquitetura pode ser pensada desde o início como:
+
+> **Operação → Dados → Indicadores → Análise → Decisão → Otimização**
+
+Isso também torna o projeto muito mais coerente com sua formação em **Ciência de Dados** e com seu objetivo de atuar em **Logística + Dados**.
+
+# 1. Nova visão do SICM
+
+Podemos estruturar o sistema em quatro camadas:
+
+```text
+┌─────────────────────────────────────────┐
+│              OPERAÇÃO                   │
+│ Mobile + Web + Conferência              │
+└───────────────────┬─────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│             DADOS                       │
+│ Materiais • Fornecedores • Conferências │
+│ Tempos • Quantidades • Divergências     │
+└───────────────────┬─────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│          BI / ANALYTICS                 │
+│ KPIs • Indicadores • Tendências         │
+│ Produtividade • Qualidade • Custos      │
+└───────────────────┬─────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│       INTELIGÊNCIA / DATA SCIENCE       │
+│ Análise de padrões • Score de risco     │
+│ Previsões • Anomalias • Otimização      │
+└─────────────────────────────────────────┘
+```
+
+---
+
+# 2. Não devemos medir apenas "quantos materiais foram conferidos"
+
+Esse seria um sistema muito limitado.
+
+Precisamos capturar **eventos operacionais**.
+
+Por exemplo, durante uma conferência:
+
+```text
+09:02 → Conferência iniciada
+09:03 → Item identificado
+09:03 → Quantidade registrada
+09:04 → Item aprovado
+09:04 → Próximo item
+09:05 → Divergência identificada
+09:07 → Foto registrada
+09:08 → Divergência analisada
+09:10 → Conferência finalizada
+```
+
+Esses eventos são extremamente valiosos.
+
+A partir deles conseguimos calcular produtividade, tempo, gargalos e eficiência.
+
+---
+
+# 3. KPIs logísticos
+
+Eu dividiria os indicadores em **seis grupos**.
+
+## A. Produtividade
+
+Exemplos:
+
+### Itens conferidos por hora
+
+```text
+Itens conferidos
+────────────────
+Horas trabalhadas
+```
+
+### Conferências por hora
+
+```text
+Conferências concluídas
+───────────────────────
+Horas trabalhadas
+```
+
+### Produtividade por operador
+
+```text
+Itens conferidos pelo operador
+──────────────────────────────
+Horas efetivamente trabalhadas
+```
+
+Podemos comparar produtividade por:
+
+* operador;
+* turno;
+* dia;
+* semana;
+* mês;
+* unidade;
+* fornecedor.
+
+---
+
+# 4. Tempo operacional
+
+Aqui podemos obter informações muito interessantes.
+
+### Tempo médio de conferência
+
+```text
+Hora final - Hora inicial
+```
+
+### Tempo médio por item
+
+```text
+Tempo total
+───────────
+Itens conferidos
+```
+
+### Tempo de tratamento de divergência
+
+```text
+Divergência encerrada
+        -
+Divergência registrada
+```
+
+Isso permite descobrir, por exemplo:
+
+> A conferência é rápida, mas as divergências estão consumindo grande parte do tempo operacional.
+
+Essa é uma informação que uma simples planilha dificilmente evidencia bem.
+
+---
+
+# 5. Qualidade da conferência
+
+### Taxa de conformidade
+
+```text
+Itens conformes
+─────────────── × 100
+Itens conferidos
+```
+
+### Taxa de divergência
+
+```text
+Itens divergentes
+───────────────── × 100
+Itens conferidos
+```
+
+### Taxa de erro por fornecedor
+
+```text
+Divergências do fornecedor
+────────────────────────── × 100
+Itens recebidos do fornecedor
+```
+
+### Taxa de retrabalho
+
+Podemos medir quantas conferências precisaram ser reabertas ou corrigidas.
+
+---
+
+# 6. Indicadores de automação
+
+Esse será um diferencial importante do projeto.
+
+### Taxa de automação
+
+```text
+Itens processados automaticamente
+───────────────────────────────── × 100
+Total de itens
+```
+
+Também podemos medir:
+
+### Intervenção humana
+
+```text
+Itens que exigiram intervenção
+─────────────────────────────── × 100
+Total de itens
+```
+
+E:
+
+### Taxa de exceção
+
+```text
+Exceções
+──────── × 100
+Total processado
+```
+
+Assim conseguiremos responder:
+
+> **Quanto do processo realmente foi automatizado?**
+
+---
+
+# 7. Indicadores de fornecedores
+
+Podemos criar um **Supplier Performance Analytics**.
+
+Para cada fornecedor:
+
+```text
+Fornecedor ABC
+────────────────────────
+Itens recebidos:       12.500
+Conformidade:           97,4%
+Divergências:             2,6%
+Tempo médio:           04:32
+Retrabalho:              1,8%
+```
+
+Podemos acompanhar:
+
+* quantidade recebida;
+* quantidade divergente;
+* percentual de conformidade;
+* tipos de divergência;
+* frequência;
+* tempo de conferência;
+* reincidência;
+* evolução mensal.
+
+Importante: o sistema **não precisa atribuir automaticamente uma "nota" subjetiva ao fornecedor**. Podemos apresentar os indicadores objetivos e deixar a organização definir seus critérios.
+
+---
+
+# 8. Indicadores de materiais
+
+Também podemos descobrir padrões relacionados aos produtos.
+
+Exemplo:
+
+```text
+MATERIAL
+Parafuso M10
+
+Recebimentos:          420
+Unidades:            85.000
+Divergências:          1.250
+Taxa divergência:       1,47%
+```
+
+Podemos identificar:
+
+* materiais com maior frequência de divergência;
+* materiais com maior quantidade divergente;
+* materiais com problemas de identificação;
+* materiais com maior tempo de conferência;
+* materiais com maior necessidade de intervenção.
+
+---
+
+# 9. Dashboard executivo
+
+O sistema web poderia ter um dashboard como:
+
+```text
+┌─────────────────────────────────────────────────┐
+│          SICM — DASHBOARD LOGÍSTICO             │
+├──────────────┬──────────────┬───────────────────┤
+│ CONFERÊNCIAS │ ITENS        │ CONFORMIDADE      │
+│     842      │   48.520     │     97,8%         │
+├──────────────┼──────────────┼───────────────────┤
+│ DIVERGÊNCIAS │ AUTOMAÇÃO    │ TEMPO MÉDIO       │
+│     1.067    │    94,2%     │     04:18         │
+└──────────────┴──────────────┴───────────────────┘
+```
+
+Abaixo:
+
+```text
+Evolução de produtividade
+Evolução de divergências
+Conformidade por fornecedor
+Tempo médio por operação
+```
+
+---
+
+# 10. Dashboard operacional
+
+O supervisor precisa de uma visão diferente do gestor.
+
+### Hoje
+
+```text
+CONFERÊNCIAS EM ANDAMENTO       18
+
+AGUARDANDO CONFERÊNCIA            7
+
+COM DIVERGÊNCIA                   4
+
+FINALIZADAS                      126
+
+OPERADORES ATIVOS                 11
+```
+
+E podemos mostrar:
+
+```text
+Operador       Itens/h     Conferências
+---------------------------------------
+Operador 01      142           18
+Operador 02      137           16
+Operador 03      155           21
+```
+
+Aqui precisamos ter cuidado metodológico: **produtividade não deve ser interpretada isoladamente**, porque uma operação com materiais mais complexos pode naturalmente demandar mais tempo.
+
+Por isso, o sistema deverá preservar o contexto da operação.
+
+---
+
+# 11. Análise de gargalos
+
+Essa é uma parte que considero muito importante.
+
+Podemos registrar o tempo de cada etapa:
+
+```text
+Chegada
+   ↓
+Aguardando início
+   ↓
+Conferência
+   ↓
+Divergência
+   ↓
+Análise
+   ↓
+Liberação
+```
+
+Então conseguimos calcular:
+
+```text
+Tempo de espera
+Tempo de conferência
+Tempo de tratamento
+Tempo total de ciclo
+```
+
+Isso transforma o SICM em uma ferramenta de **análise do processo logístico**, não apenas de conferência.
+
+---
+
+# 12. Data Warehouse futuramente
+
+Quando o volume de dados crescer, podemos separar:
+
+**Banco operacional**
+
+```text
+PostgreSQL OLTP
+```
+
+do:
+
+**Banco analítico**
+
+```text
+Data Warehouse
+      ↓
+Fatos
+Dimensões
+      ↓
+BI / Data Science
+```
+
+Por exemplo:
+
+### Fato_Conferencia
+
+```text
+id_conferencia
+id_material
+id_fornecedor
+id_operador
+id_local
+data
+hora_inicio
+hora_fim
+quantidade_esperada
+quantidade_recebida
+quantidade_divergente
+tempo_conferencia
+status
+```
+
+Dimensões:
+
+```text
+Dim_Produto
+Dim_Fornecedor
+Dim_Operador
+Dim_Tempo
+Dim_Local
+Dim_Documento
+```
+
+Isso abre espaço para análises muito mais robustas.
+
+---
+
+# 13. Ciência de Dados
+
+Depois de termos histórico suficiente, podemos avançar para:
+
+### Análise descritiva
+
+**O que aconteceu?**
+
+> Houve 2,8% de divergência em setembro.
+
+### Análise diagnóstica
+
+**Por que aconteceu?**
+
+> 62% das divergências vieram de determinado grupo de materiais.
+
+### Análise preditiva
+
+**O que pode acontecer?**
+
+> Esta combinação de fornecedor + material + operação apresenta maior probabilidade histórica de divergência.
+
+### Análise prescritiva
+
+**O que podemos fazer?**
+
+> Direcionar determinadas cargas para conferência reforçada.
+
+---
+
+# 14. Machine Learning
+
+Aqui podemos criar futuramente um:
+
+## Risk Score de Conferência
+
+Exemplo:
+
+```text
+ENTRADA #000584
+
+Fornecedor: ABC
+Material: X
+Histórico: elevado índice de divergência
+Volume: alto
+Tipo de operação: recorrente
+
+Risco estimado:
+████████░░ 78%
+
+→ CONFERÊNCIA REFORÇADA
+```
+
+Enquanto uma entrada com baixo risco poderia passar por um processo mais automatizado.
+
+**Importante:** o modelo não deve substituir as regras determinísticas de conferência. Ele servirá para **priorização e análise de risco**.
+
+---
+
+# 15. Um ponto fundamental: precisamos projetar os dados para análise desde o início
+
+Essa é provavelmente a mudança mais importante que devemos fazer no projeto.
+
+Não devemos pensar:
+
+> "Vamos criar as telas e depois vemos os indicadores."
+
+Devemos pensar:
+
+> **"Cada operação realizada pelo sistema precisa gerar dados úteis para análise."**
+
+Por isso, vamos registrar eventos e dimensões desde a primeira versão.
+
+Exemplo:
+
+```text
+EVENTO
+────────────────────
+id_evento
+tipo_evento
+data_hora
+usuario
+conferencia
+material
+fornecedor
+local
+quantidade
+origem
+dispositivo
+```
+
+Isso permitirá reconstruir o processo posteriormente.
+
+---
+
+# 16. Nova arquitetura do SICM
+
+Com essa mudança, eu atualizaria nossa arquitetura para:
+
+```text
+                         SICM
+                          │
+             ┌────────────┴────────────┐
+             │                         │
+          OPERAÇÃO                  MOBILE
+             │                         │
+             └────────────┬────────────┘
+                          ↓
+                         API
+                          ↓
+                  BANCO OPERACIONAL
+                          │
+                          ↓
+                   EVENTOS / DADOS
+                          │
+             ┌────────────┴────────────┐
+             ↓                         ↓
+       INDICADORES                  ANALYTICS
+             │                         │
+             └────────────┬────────────┘
+                          ↓
+                    DATA MART / BI
+                          │
+                          ↓
+                   CIÊNCIA DE DADOS
+                          │
+                          ↓
+                 MODELOS PREDITIVOS
+```
+
+---
+
+# 17. Portanto, eu mudaria o escopo do projeto
+
+O SICM deixa de ser apenas:
+
+**"Sistema de conferência de materiais."**
+
+E passa a ser:
+
+> **Sistema inteligente de conferência, produtividade e análise de operações logísticas.**
+
+A conferência continua sendo o **núcleo operacional**, mas os dados gerados por ela passam a alimentar uma camada analítica forte.
+
+Isso nos permite construir um projeto que demonstra, em um único produto:
+
+**Logística + Engenharia de Software + Banco de Dados + BI + Ciência de Dados + Automação.**
+
+### Próximo documento
+
+Antes de avançarmos para código, proponho que o **Documento 02 — Requisitos** já seja construído considerando essa arquitetura analítica.
+
+Nele vamos definir, além dos requisitos funcionais da operação, os requisitos para **coleta de dados, KPIs, indicadores, produtividade, rastreabilidade e Analytics**. Isso vai determinar quais dados precisamos armazenar desde o primeiro dia.
