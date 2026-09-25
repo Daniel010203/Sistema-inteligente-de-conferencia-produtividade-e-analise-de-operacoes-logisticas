@@ -1,0 +1,1000 @@
+Claro. Abaixo está o **Documento 03 — Modelagem do Processo de Negócio**, já incorporando o forte componente de **Logística, Produtividade, KPIs e Análise de Dados** que definimos.
+
+# SICM — Sistema Inteligente de Conferência de Materiais
+
+**Documento:** 03 — Modelagem do Processo de Negócio
+**Versão:** 0.1
+**Status:** Em desenvolvimento
+**Projeto:** Sistema Inteligente de Conferência de Materiais
+
+---
+
+## 1. Objetivo
+
+Este documento descreve o processo operacional que será automatizado pelo SICM, desde o recebimento das informações do material até a conclusão da conferência e geração dos dados para indicadores e análises.
+
+O processo foi projetado com três objetivos principais:
+
+1. Reduzir a necessidade de intervenção humana.
+2. Aumentar a velocidade e a confiabilidade da conferência.
+3. Transformar cada operação em dados estruturados para análise logística, produtividade e Ciência de Dados.
+
+---
+
+# 2. Visão geral do processo
+
+O processo completo será:
+
+```text
+DOCUMENTO / ORDEM DE RECEBIMENTO
+                ↓
+        REGISTRO DA ENTRADA
+                ↓
+      IDENTIFICAÇÃO DOS ITENS
+                ↓
+       CRIAÇÃO DA CONFERÊNCIA
+                ↓
+       ATRIBUIÇÃO AO OPERADOR
+                ↓
+       EXECUÇÃO PELO MOBILE
+                ↓
+       LEITURA DO MATERIAL
+                ↓
+        VALIDAÇÃO AUTOMÁTICA
+                ↓
+       CONFERÊNCIA QUANTITATIVA
+                ↓
+          ┌─────┴─────┐
+          ↓           ↓
+       CONFORME    DIVERGENTE
+          ↓           ↓
+     APROVAÇÃO     EXCEÇÃO
+     AUTOMÁTICA        ↓
+          │        ANÁLISE HUMANA
+          │             ↓
+          │          DECISÃO
+          └──────┬──────┘
+                 ↓
+          FINALIZAÇÃO
+                 ↓
+          SINCRONIZAÇÃO
+                 ↓
+        REGISTRO HISTÓRICO
+                 ↓
+           INDICADORES
+                 ↓
+             ANALYTICS
+```
+
+---
+
+# 3. Participantes do processo
+
+## 3.1 Fornecedor
+
+Origina o material e fornece as informações da entrega.
+
+---
+
+## 3.2 Supervisor
+
+Responsável por:
+
+* acompanhar recebimentos;
+* criar ou validar conferências;
+* atribuir operações;
+* tratar divergências;
+* acompanhar produtividade;
+* acompanhar indicadores.
+
+---
+
+## 3.3 Conferente
+
+Executa a operação de campo através do aplicativo mobile.
+
+Responsável por:
+
+* identificar materiais;
+* registrar quantidades;
+* registrar evidências;
+* finalizar a operação.
+
+---
+
+## 3.4 Sistema
+
+O SICM executará automaticamente:
+
+* identificação;
+* validação;
+* comparação;
+* classificação;
+* cálculo;
+* registro de eventos;
+* geração de indicadores;
+* sincronização;
+* atualização dos dashboards.
+
+---
+
+# 4. Processo 01 — Recebimento da informação
+
+O processo começa quando existe uma previsão de entrada de materiais.
+
+A origem poderá ser:
+
+* documento importado;
+* XML de NF-e;
+* lançamento manual;
+* integração futura com ERP/WMS.
+
+### Fluxo
+
+```text
+Documento recebido
+       ↓
+Sistema identifica fornecedor
+       ↓
+Sistema identifica materiais
+       ↓
+Sistema valida cadastro
+       ↓
+Documento registrado
+```
+
+---
+
+# 5. Validação do documento
+
+Antes de criar a conferência, o sistema deverá verificar:
+
+* fornecedor existente;
+* materiais cadastrados;
+* códigos válidos;
+* quantidades;
+* duplicidade do documento;
+* consistência das informações.
+
+### Resultado
+
+```text
+Documento válido
+      ↓
+Continua processo
+```
+
+ou:
+
+```text
+Documento inconsistente
+      ↓
+Exceção
+      ↓
+Análise
+```
+
+---
+
+# 6. Processo 02 — Criação da conferência
+
+Após a validação, o sistema cria uma conferência.
+
+Exemplo:
+
+```text
+CONFERÊNCIA #000152
+
+Fornecedor:
+ABC Materiais
+
+Documento:
+NF 000845
+
+Local:
+CD 01
+
+Itens esperados:
+32
+
+Quantidade esperada:
+4.850 unidades
+```
+
+A conferência recebe um identificador único.
+
+---
+
+# 7. Processo 03 — Planejamento
+
+O supervisor poderá:
+
+* iniciar imediatamente;
+* agendar;
+* atribuir a um conferente;
+* deixar aguardando.
+
+O sistema registrará:
+
+```text
+Data/hora de criação
+Data/hora de atribuição
+Usuário responsável
+Local
+Prioridade
+Status
+```
+
+---
+
+# 8. Estados da conferência
+
+Uma conferência poderá assumir os seguintes estados:
+
+```text
+CRIADA
+  ↓
+AGUARDANDO
+  ↓
+ATRIBUÍDA
+  ↓
+EM_CONFERÊNCIA
+  ↓
+AGUARDANDO_ANÁLISE
+  ↓
+EM_ANÁLISE
+  ↓
+CONCLUÍDA
+```
+
+Também poderão existir estados de exceção:
+
+```text
+CANCELADA
+BLOQUEADA
+COM_ERRO
+```
+
+---
+
+# 9. Processo 04 — Início da operação mobile
+
+O conferente acessa o aplicativo.
+
+Visualiza:
+
+```text
+Minhas conferências
+
+#000152
+ABC Materiais
+32 itens
+Aguardando
+```
+
+Seleciona:
+
+**INICIAR**
+
+O sistema registra automaticamente:
+
+* data;
+* hora;
+* usuário;
+* dispositivo;
+* conferência;
+* localização, quando autorizada e necessária ao processo.
+
+Esse evento marca o início efetivo da operação.
+
+---
+
+# 10. Processo 05 — Identificação do material
+
+O aplicativo ativa a câmera.
+
+O conferente direciona para o código do material.
+
+```text
+CÂMERA
+   ↓
+LEITURA
+   ↓
+CÓDIGO
+   ↓
+CONSULTA
+   ↓
+MATERIAL
+```
+
+O sistema verifica se o código pertence à conferência.
+
+---
+
+# 11. Validação automática
+
+O sistema compara:
+
+```text
+CÓDIGO LIDO
+     ×
+CÓDIGO ESPERADO
+```
+
+### Situação A — correto
+
+```text
+✓ MATERIAL IDENTIFICADO
+
+Parafuso M10
+Código: MAT-000123
+```
+
+A operação continua.
+
+### Situação B — incorreto
+
+```text
+⚠ MATERIAL NÃO ESPERADO
+
+Código identificado:
+MAT-000456
+
+Código esperado:
+MAT-000123
+```
+
+O sistema gera automaticamente um evento de divergência.
+
+---
+
+# 12. Processo 06 — Conferência da quantidade
+
+Depois da identificação, o sistema apresenta:
+
+```text
+Material:
+Parafuso M10
+
+Esperado:
+500
+
+Recebido:
+[     ]
+```
+
+O conferente informa a quantidade.
+
+O sistema calcula:
+
+```text
+Diferença =
+Recebido - Esperado
+```
+
+---
+
+# 13. Situação de conformidade
+
+Se:
+
+```text
+Recebido = Esperado
+```
+
+o sistema registra:
+
+```text
+ITEM_CONFORME
+```
+
+e permite continuar.
+
+Não será necessário solicitar aprovação manual.
+
+---
+
+# 14. Situação de divergência
+
+Se:
+
+```text
+Recebido ≠ Esperado
+```
+
+o sistema cria uma ocorrência.
+
+Exemplo:
+
+```text
+Esperado: 500
+Recebido: 480
+
+Diferença: -20
+```
+
+Classificação:
+
+```text
+QUANTIDADE_INFERIOR
+```
+
+---
+
+# 15. Registro de evidência
+
+Quando necessário, o conferente poderá registrar:
+
+* foto;
+* observação;
+* informação adicional.
+
+Exemplo:
+
+```text
+DIVERGÊNCIA
+
+Material: Parafuso M10
+Esperado: 500
+Recebido: 480
+
+Foto:
+[imagem]
+
+Observação:
+"Recebimento apresentou 20 unidades
+a menos."
+```
+
+---
+
+# 16. Processo 07 — Continuidade
+
+Uma divergência não necessariamente interromperá toda a conferência.
+
+O sistema deverá permitir:
+
+```text
+Item 01 → Conforme
+Item 02 → Conforme
+Item 03 → Divergente
+Item 04 → Conforme
+Item 05 → Conforme
+```
+
+O operador continua trabalhando.
+
+Isso evita que uma única exceção paralise toda a operação.
+
+---
+
+# 17. Processo 08 — Finalização
+
+Quando todos os itens previstos tiverem sido processados:
+
+```text
+TODOS OS ITENS PROCESSADOS
+```
+
+O sistema verifica automaticamente:
+
+```text
+Existem divergências?
+       │
+   ┌───┴───┐
+  NÃO     SIM
+   │        │
+   ↓        ↓
+CONCLUIR  ANÁLISE
+```
+
+---
+
+# 18. Finalização sem divergência
+
+Se tudo estiver correto:
+
+```text
+CONFERÊNCIA
+     ↓
+100% CONFORME
+     ↓
+APROVAÇÃO AUTOMÁTICA
+     ↓
+CONCLUÍDA
+```
+
+O sistema registra o horário de conclusão.
+
+---
+
+# 19. Finalização com divergência
+
+Se houver divergências:
+
+```text
+CONFERÊNCIA
+     ↓
+DIVERGÊNCIAS
+     ↓
+AGUARDANDO ANÁLISE
+```
+
+O supervisor recebe a ocorrência.
+
+---
+
+# 20. Processo 09 — Tratamento da divergência
+
+O supervisor visualiza:
+
+```text
+Conferência #000152
+
+Divergências:
+2
+
+Material 01
+Quantidade inferior
+
+Material 02
+Item incorreto
+```
+
+Poderá analisar as evidências e registrar uma decisão.
+
+Exemplos de decisões:
+
+```text
+ACEITA
+REJEITA
+SOLICITA NOVA CONFERÊNCIA
+CANCELA
+```
+
+A decisão será registrada na auditoria.
+
+---
+
+# 21. Processo 10 — Sincronização
+
+O sistema deverá suportar operação offline.
+
+### Online
+
+```text
+Mobile
+ ↓
+API
+ ↓
+Banco central
+```
+
+### Offline
+
+```text
+Mobile
+ ↓
+Banco local
+ ↓
+Operação
+```
+
+### Retorno da conexão
+
+```text
+Banco local
+ ↓
+Fila de sincronização
+ ↓
+API
+ ↓
+Banco central
+ ↓
+Confirmação
+```
+
+Cada registro deverá possuir um identificador que permita evitar duplicidades.
+
+---
+
+# 22. Processo 11 — Geração dos dados analíticos
+
+Cada etapa deverá produzir dados.
+
+Exemplo:
+
+```text
+CONFERÊNCIA_INICIADA
+ITEM_LIDO
+ITEM_VALIDADO
+ITEM_CONFORME
+QUANTIDADE_REGISTRADA
+DIVERGÊNCIA_GERADA
+FOTO_REGISTRADA
+DIVERGÊNCIA_ANALISADA
+CONFERÊNCIA_FINALIZADA
+```
+
+Esses eventos formarão a base histórica do SICM.
+
+---
+
+# 23. Modelo conceitual do fluxo de dados
+
+```text
+                   OPERAÇÃO
+                      │
+                      ▼
+              EVENTOS OPERACIONAIS
+                      │
+                      ▼
+               DADOS HISTÓRICOS
+                      │
+        ┌─────────────┼─────────────┐
+        ↓             ↓             ↓
+    PRODUTIVIDADE   QUALIDADE    AUTOMAÇÃO
+        │             │             │
+        └─────────────┼─────────────┘
+                      ↓
+                    KPIs
+                      │
+                      ↓
+                  ANALYTICS
+                      │
+                      ↓
+               CIÊNCIA DE DADOS
+```
+
+---
+
+# 24. KPIs derivados do processo
+
+## Produtividade
+
+### Itens por hora
+
+```text
+Total de itens conferidos
+──────────────────────────
+Tempo efetivo de conferência
+```
+
+### Conferências por hora
+
+```text
+Conferências concluídas
+────────────────────────
+Horas operacionais
+```
+
+---
+
+## Tempo
+
+### Tempo de conferência
+
+```text
+Hora final - Hora inicial
+```
+
+### Tempo de espera
+
+```text
+Início da conferência
+-
+Chegada/Disponibilização
+```
+
+### Tempo de tratamento
+
+```text
+Decisão da divergência
+-
+Registro da divergência
+```
+
+### Lead Time
+
+```text
+Liberação
+-
+Chegada
+```
+
+---
+
+# 25. KPIs de qualidade
+
+### Taxa de conformidade
+
+```text
+Itens conformes
+─────────────── × 100
+Itens conferidos
+```
+
+### Taxa de divergência
+
+```text
+Itens divergentes
+───────────────── × 100
+Itens conferidos
+```
+
+### Taxa de retrabalho
+
+```text
+Operações retrabalhadas
+─────────────────────── × 100
+Operações realizadas
+```
+
+---
+
+# 26. KPIs de automação
+
+### Taxa de automação
+
+```text
+Itens processados sem intervenção
+────────────────────────────────── × 100
+Total de itens
+```
+
+### Taxa de intervenção humana
+
+```text
+Itens que exigiram intervenção
+─────────────────────────────── × 100
+Total de itens
+```
+
+### Taxa de exceção
+
+```text
+Exceções
+──────── × 100
+Total de operações
+```
+
+---
+
+# 27. Análise por fornecedor
+
+O processo gera automaticamente um histórico:
+
+```text
+Fornecedor
+   ↓
+Recebimentos
+   ↓
+Itens
+   ↓
+Conferências
+   ↓
+Divergências
+   ↓
+Tempo
+   ↓
+Conformidade
+```
+
+Isso permitirá análises históricas e comparativas.
+
+---
+
+# 28. Análise por material
+
+O mesmo princípio:
+
+```text
+Material
+   ↓
+Quantidade recebida
+   ↓
+Quantidade conferida
+   ↓
+Divergências
+   ↓
+Tempo
+   ↓
+Frequência
+```
+
+---
+
+# 29. Análise de produtividade
+
+O sistema poderá responder:
+
+* Quantos itens foram conferidos?
+* Quantas conferências foram concluídas?
+* Quanto tempo foi utilizado?
+* Qual o tempo médio por item?
+* Quantas operações exigiram intervenção?
+* Quantas operações foram totalmente automáticas?
+* Onde existem gargalos?
+
+---
+
+# 30. Análise de gargalos
+
+O processo será dividido em etapas mensuráveis:
+
+```text
+CHEGADA
+   ↓
+ESPERA
+   ↓
+INÍCIO
+   ↓
+CONFERÊNCIA
+   ↓
+DIVERGÊNCIA
+   ↓
+ANÁLISE
+   ↓
+LIBERAÇÃO
+```
+
+Dessa forma, poderemos identificar onde o tempo está sendo consumido.
+
+---
+
+# 31. Camada de inteligência futura
+
+Com histórico suficiente:
+
+```text
+DADOS HISTÓRICOS
+       ↓
+TRATAMENTO
+       ↓
+ANÁLISE EXPLORATÓRIA
+       ↓
+ENGENHARIA DE ATRIBUTOS
+       ↓
+MODELO ESTATÍSTICO
+       ↓
+MACHINE LEARNING
+       ↓
+RISCO DE DIVERGÊNCIA
+```
+
+Exemplo:
+
+```text
+Nova entrada
+      ↓
+Características da operação
+      ↓
+Modelo
+      ↓
+Risco estimado
+      ↓
+Baixo ──────→ Fluxo automatizado
+      │
+Alto ───────→ Conferência reforçada
+```
+
+Esse recurso será desenvolvido somente depois de termos dados históricos suficientes.
+
+---
+
+# 32. Princípio de decisão
+
+O SICM terá três níveis:
+
+### Nível 1 — Automático
+
+O sistema resolve sozinho.
+
+```text
+Código correto
+Quantidade correta
+Dados consistentes
+        ↓
+     APROVA
+```
+
+### Nível 2 — Exceção
+
+O sistema detecta e solicita intervenção.
+
+```text
+Divergência
+    ↓
+Supervisor
+```
+
+### Nível 3 — Inteligência
+
+No futuro, o sistema utilizará histórico para priorizar operações de maior risco.
+
+```text
+Histórico
+    ↓
+Modelo
+    ↓
+Risco
+    ↓
+Prioridade operacional
+```
+
+---
+
+# 33. Resultado esperado do processo
+
+O processo ideal será:
+
+```text
+       MATERIAL CHEGA
+             ↓
+      SISTEMA IDENTIFICA
+             ↓
+      SISTEMA CONFERE
+             ↓
+      ┌──────┴──────┐
+      ↓             ↓
+   CORRETO       ERRO
+      ↓             ↓
+ AUTOMÁTICO      EXCEÇÃO
+      ↓             ↓
+      └──────┬──────┘
+             ↓
+        FINALIZAÇÃO
+             ↓
+       DADOS GERADOS
+             ↓
+          KPIs
+             ↓
+        ANALYTICS
+             ↓
+    MELHORIA OPERACIONAL
+```
+
+---
+
+# 34. Princípio central do SICM
+
+O projeto será construído seguindo uma lógica de **"Human-in-the-loop"**:
+
+> **O sistema executa automaticamente tudo aquilo que pode ser validado por regras objetivas; o ser humano intervém apenas quando existe uma exceção, ambiguidade ou decisão que exija análise.**
+
+Isso é particularmente importante porque o objetivo não é simplesmente substituir pessoas, mas **reduzir tarefas manuais repetitivas, aumentar a produtividade e direcionar o trabalho humano para as exceções e decisões de maior valor.**
+
+---
+
+# 35. Próxima etapa
+
+Com os documentos 01, 02 e 03 definidos, já temos uma base sólida para passar para:
+
+## Documento 04 — Casos de Uso
+
+Nele vamos transformar esse processo em funcionalidades do software:
+
+```text
+UC01 — Autenticar usuário
+UC02 — Cadastrar material
+UC03 — Cadastrar fornecedor
+UC04 — Registrar documento
+UC05 — Criar conferência
+UC06 — Atribuir conferência
+UC07 — Executar conferência mobile
+UC08 — Identificar material
+UC09 — Registrar quantidade
+UC10 — Registrar divergência
+UC11 — Registrar evidência
+UC12 — Sincronizar operação
+UC13 — Analisar divergência
+UC14 — Finalizar conferência
+UC15 — Consultar KPIs
+UC16 — Consultar produtividade
+UC17 — Consultar indicadores logísticos
+UC18 — Consultar histórico
+UC19 — Gerar relatório
+UC20 — Auditar operação
+```
+
+A partir dos casos de uso, poderemos partir para o **Documento 05 — Modelo de Dados**, onde vamos definir as entidades, relacionamentos e principalmente quais dados precisam ser armazenados para que o SICM consiga produzir os KPIs e análises que definimos.
