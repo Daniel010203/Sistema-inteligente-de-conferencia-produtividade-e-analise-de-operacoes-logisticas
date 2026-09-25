@@ -1,0 +1,1113 @@
+Vamos avançar para o **Documento 04 — Casos de Uso**. Aqui vamos transformar o processo de negócio em funcionalidades concretas do SICM e, principalmente, deixar claro **quem faz o quê, o que o sistema automatiza e quais dados cada operação produz**.
+
+# SICM — Sistema Inteligente de Conferência de Materiais
+
+**Documento:** 04 — Casos de Uso
+**Versão:** 0.1
+**Status:** Em desenvolvimento
+**Projeto:** Sistema Inteligente de Conferência de Materiais
+
+---
+
+# 1. Objetivo
+
+Este documento transforma os processos definidos no Documento 03 em funcionalidades do software.
+
+Os casos de uso descrevem:
+
+* atores;
+* funcionalidades;
+* fluxo principal;
+* exceções;
+* regras de negócio;
+* dados gerados;
+* impacto nos indicadores e KPIs.
+
+O objetivo é estabelecer uma referência para posteriormente desenvolver:
+
+**Banco de Dados → API → Web → Mobile → Analytics.**
+
+---
+
+# 2. Atores
+
+| Código | Ator          | Responsabilidade                |
+| ------ | ------------- | ------------------------------- |
+| AT01   | Administrador | Administração do sistema        |
+| AT02   | Supervisor    | Gestão operacional              |
+| AT03   | Conferente    | Execução da conferência         |
+| AT04   | Sistema       | Automação e processamento       |
+| AT05   | Fornecedor    | Origem dos materiais/documentos |
+
+---
+
+# 3. Mapa geral dos casos de uso
+
+```text
+                         SICM
+                          │
+        ┌─────────────────┼─────────────────┐
+        │                 │                 │
+   ADMINISTRAÇÃO      OPERAÇÃO          ANALYTICS
+        │                 │                 │
+        ▼                 ▼                 ▼
+    Usuários          Recebimento          KPIs
+    Materiais         Conferência          Produtividade
+    Fornecedores      Divergências         Qualidade
+    Locais            Sincronização        Automação
+                      Mobile              Relatórios
+```
+
+---
+
+# 4. Casos de Uso — Administração
+
+## UC01 — Autenticar usuário
+
+**Ator principal:** Administrador, Supervisor ou Conferente.
+
+### Objetivo
+
+Permitir acesso seguro ao sistema.
+
+### Fluxo principal
+
+```text
+Usuário
+  ↓
+Informa credenciais
+  ↓
+Sistema valida
+  ↓
+Usuário autenticado
+  ↓
+Sistema identifica perfil
+  ↓
+Sistema libera funcionalidades
+```
+
+### Exceções
+
+* usuário inexistente;
+* senha incorreta;
+* usuário inativo;
+* sessão expirada.
+
+### Dados gerados
+
+* usuário;
+* data/hora;
+* dispositivo;
+* resultado da autenticação.
+
+---
+
+# 5. UC02 — Gerenciar usuários
+
+**Ator:** Administrador.
+
+### Permite
+
+* cadastrar;
+* consultar;
+* editar;
+* ativar;
+* desativar;
+* definir perfil.
+
+### Perfis
+
+```text
+ADMINISTRADOR
+SUPERVISOR
+CONFERENTE
+```
+
+### Regra
+
+Usuário desativado não poderá iniciar novas operações.
+
+---
+
+# 6. UC03 — Gerenciar materiais
+
+**Ator:** Administrador/Supervisor.
+
+### Dados
+
+```text
+Código
+Código de barras
+Descrição
+Categoria
+Unidade de medida
+Status
+```
+
+### Operações
+
+* cadastrar;
+* alterar;
+* consultar;
+* ativar;
+* desativar.
+
+---
+
+# 7. UC04 — Gerenciar fornecedores
+
+**Ator:** Administrador/Supervisor.
+
+### Dados
+
+```text
+Código
+CNPJ
+Razão social
+Nome fantasia
+Status
+```
+
+O histórico das operações deverá permanecer associado ao fornecedor mesmo que ele seja posteriormente desativado.
+
+---
+
+# 8. UC05 — Gerenciar locais
+
+**Ator:** Administrador/Supervisor.
+
+### Estrutura
+
+```text
+Empresa
+  ↓
+Unidade
+  ↓
+Centro de distribuição
+  ↓
+Área
+```
+
+O local será uma dimensão importante para análise de produtividade e operação.
+
+---
+
+# 9. Casos de Uso — Recebimento
+
+# UC06 — Registrar documento de entrada
+
+**Ator:** Supervisor.
+
+### Objetivo
+
+Registrar a entrada prevista de materiais.
+
+### Origem inicial
+
+* lançamento manual;
+* XML.
+
+### Origem futura
+
+* ERP;
+* WMS;
+* API externa.
+
+---
+
+# UC07 — Importar XML
+
+**Ator:** Supervisor/Sistema.
+
+### Fluxo
+
+```text
+Selecionar XML
+      ↓
+Sistema lê documento
+      ↓
+Identifica fornecedor
+      ↓
+Identifica itens
+      ↓
+Identifica quantidades
+      ↓
+Valida dados
+      ↓
+Registra documento
+```
+
+### Exceções
+
+* XML inválido;
+* fornecedor não cadastrado;
+* material não cadastrado;
+* documento duplicado;
+* dados inconsistentes.
+
+---
+
+# UC08 — Criar conferência
+
+**Ator:** Supervisor/Sistema.
+
+### Fluxo
+
+```text
+Documento válido
+       ↓
+Criar conferência
+       ↓
+Adicionar itens esperados
+       ↓
+Definir local
+       ↓
+Definir prioridade
+       ↓
+Disponibilizar operação
+```
+
+### Resultado
+
+Uma conferência recebe um identificador único.
+
+---
+
+# UC09 — Atribuir conferência
+
+**Ator:** Supervisor.
+
+### Permite
+
+Selecionar:
+
+* conferente;
+* data prevista;
+* prioridade.
+
+### Dados registrados
+
+* responsável;
+* data/hora da atribuição;
+* usuário que realizou a atribuição.
+
+---
+
+# 10. Casos de Uso — Operação Mobile
+
+# UC10 — Consultar conferências
+
+**Ator:** Conferente.
+
+O aplicativo apresentará:
+
+```text
+Minhas conferências
+
+#000152
+ABC Materiais
+32 itens
+Aguardando
+
+#000153
+XYZ Industrial
+18 itens
+Aguardando
+```
+
+---
+
+# UC11 — Iniciar conferência
+
+**Ator:** Conferente.
+
+### Fluxo
+
+```text
+Selecionar conferência
+        ↓
+Iniciar
+        ↓
+Sistema registra início
+        ↓
+Conferência = EM_CONFERÊNCIA
+```
+
+### Dados
+
+* data/hora;
+* usuário;
+* dispositivo;
+* conferência;
+* localização, quando aplicável.
+
+---
+
+# UC12 — Ler código do material
+
+**Ator:** Conferente.
+
+### Fluxo
+
+```text
+Abrir scanner
+      ↓
+Câmera
+      ↓
+Código de barras / QR Code
+      ↓
+Sistema identifica código
+      ↓
+Consulta material
+```
+
+### Possíveis resultados
+
+```text
+MATERIAL ENCONTRADO
+MATERIAL NÃO CADASTRADO
+CÓDIGO INVÁLIDO
+MATERIAL NÃO ESPERADO
+```
+
+---
+
+# UC13 — Validar material
+
+**Ator:** Sistema.
+
+### Objetivo
+
+Comparar o material identificado com o material esperado.
+
+```text
+Material esperado
+       ×
+Material identificado
+```
+
+### Resultado
+
+**Conforme**
+
+ou
+
+**Divergente**
+
+A validação deverá ocorrer automaticamente.
+
+---
+
+# UC14 — Registrar quantidade
+
+**Ator:** Conferente.
+
+### Entrada
+
+Quantidade efetivamente recebida.
+
+### Processamento
+
+```text
+Diferença =
+Recebido - Esperado
+```
+
+### Resultado
+
+```text
+0 → Conforme
+< 0 → Quantidade inferior
+> 0 → Quantidade superior
+```
+
+---
+
+# UC15 — Registrar divergência
+
+**Ator:** Sistema/Conferente.
+
+Uma divergência poderá ser criada automaticamente pelo sistema ou complementada pelo conferente.
+
+### Tipos iniciais
+
+```text
+QUANTIDADE_INFERIOR
+QUANTIDADE_SUPERIOR
+ITEM_INCORRETO
+ITEM_NÃO_ENCONTRADO
+CÓDIGO_INVÁLIDO
+ITEM_NÃO_CADASTRADO
+OUTRA
+```
+
+---
+
+# UC16 — Registrar evidência
+
+**Ator:** Conferente.
+
+### Permite
+
+* fotografar;
+* adicionar observação;
+* anexar evidência.
+
+### Objetivo
+
+Dar suporte à análise posterior da divergência.
+
+---
+
+# UC17 — Continuar conferência
+
+**Ator:** Conferente.
+
+Uma divergência não deverá necessariamente interromper a operação.
+
+Exemplo:
+
+```text
+Item 01 → OK
+Item 02 → OK
+Item 03 → DIVERGÊNCIA
+Item 04 → OK
+Item 05 → OK
+```
+
+O operador continua até processar os itens restantes.
+
+---
+
+# UC18 — Finalizar conferência
+
+**Ator:** Conferente/Sistema.
+
+### Pré-condição
+
+Todos os itens precisam ter sido processados.
+
+### Sistema verifica
+
+```text
+Todos os itens processados?
+           ↓
+       ┌───┴───┐
+      SIM      NÃO
+       ↓        ↓
+ Continua    Impede
+```
+
+Depois:
+
+```text
+Existem divergências?
+       ↓
+  ┌────┴────┐
+ NÃO       SIM
+  ↓          ↓
+CONCLUÍDA  AGUARDANDO
+           ANÁLISE
+```
+
+---
+
+# 11. Casos de Uso — Divergências
+
+# UC19 — Consultar divergências
+
+**Ator:** Supervisor.
+
+Filtros:
+
+* período;
+* fornecedor;
+* material;
+* local;
+* tipo;
+* status;
+* conferente.
+
+---
+
+# UC20 — Analisar divergência
+
+**Ator:** Supervisor.
+
+### O supervisor visualizará
+
+* material;
+* quantidade esperada;
+* quantidade recebida;
+* diferença;
+* fotografias;
+* observações;
+* operador;
+* data/hora;
+* fornecedor;
+* documento.
+
+---
+
+# UC21 — Resolver divergência
+
+**Ator:** Supervisor.
+
+Decisões possíveis:
+
+```text
+ACEITAR
+REJEITAR
+SOLICITAR NOVA CONFERÊNCIA
+CANCELAR
+```
+
+Toda decisão deverá ser registrada.
+
+---
+
+# UC22 — Solicitar nova conferência
+
+**Ator:** Supervisor.
+
+Quando necessário:
+
+```text
+Divergência
+    ↓
+Solicitar nova conferência
+    ↓
+Nova operação
+    ↓
+Novo resultado
+```
+
+O sistema deverá manter o histórico das tentativas.
+
+Isso será importante para medir **retrabalho**.
+
+---
+
+# 12. Casos de Uso — Offline
+
+# UC23 — Executar conferência offline
+
+**Ator:** Conferente.
+
+Quando não houver conexão:
+
+```text
+Conferência baixada
+       ↓
+Banco local
+       ↓
+Operação
+       ↓
+Eventos armazenados
+```
+
+O usuário deverá conseguir executar a operação normalmente dentro das limitações previstas.
+
+---
+
+# UC24 — Sincronizar dados
+
+**Ator:** Sistema.
+
+Quando houver conexão:
+
+```text
+Dados locais
+     ↓
+Fila
+     ↓
+API
+     ↓
+Servidor
+     ↓
+Validação
+     ↓
+Confirmação
+```
+
+### O sistema deverá controlar
+
+* registros pendentes;
+* registros enviados;
+* registros confirmados;
+* erros;
+* tentativas.
+
+---
+
+# 13. Casos de Uso — Analytics
+
+Aqui está uma das partes mais importantes do SICM.
+
+# UC25 — Consultar dashboard operacional
+
+**Ator:** Supervisor.
+
+Informações:
+
+```text
+Conferências
+Itens
+Pendências
+Divergências
+Tempo médio
+Operações em andamento
+```
+
+---
+
+# UC26 — Consultar dashboard de produtividade
+
+**Ator:** Supervisor/Gestor.
+
+Indicadores:
+
+* itens/hora;
+* conferências/hora;
+* tempo médio por item;
+* tempo médio de conferência;
+* volume por período;
+* produtividade por local;
+* produtividade por turno.
+
+---
+
+# UC27 — Consultar KPIs logísticos
+
+**Ator:** Supervisor/Gestor.
+
+Indicadores:
+
+### Qualidade
+
+* taxa de conformidade;
+* taxa de divergência;
+* taxa de retrabalho.
+
+### Tempo
+
+* tempo de espera;
+* tempo de conferência;
+* tempo de tratamento;
+* lead time.
+
+### Automação
+
+* taxa de automação;
+* taxa de intervenção;
+* taxa de exceção.
+
+---
+
+# UC28 — Analisar fornecedor
+
+**Ator:** Supervisor/Gestor.
+
+O sistema permitirá analisar:
+
+```text
+Fornecedor
+     ↓
+Volume
+     ↓
+Conformidade
+     ↓
+Divergências
+     ↓
+Tempo
+     ↓
+Histórico
+```
+
+---
+
+# UC29 — Analisar material
+
+**Ator:** Supervisor/Gestor.
+
+Permite identificar:
+
+* materiais com maior ocorrência de divergência;
+* volume recebido;
+* frequência;
+* histórico;
+* tempo médio de conferência.
+
+---
+
+# UC30 — Analisar gargalos
+
+**Ator:** Supervisor/Gestor.
+
+O sistema deverá decompor o processo:
+
+```text
+Chegada
+ ↓
+Espera
+ ↓
+Início
+ ↓
+Conferência
+ ↓
+Divergência
+ ↓
+Análise
+ ↓
+Liberação
+```
+
+E permitir identificar onde o tempo está sendo consumido.
+
+---
+
+# UC31 — Consultar histórico
+
+**Ator:** Supervisor/Gestor.
+
+Permite consultar:
+
+* conferências;
+* materiais;
+* fornecedores;
+* divergências;
+* usuários;
+* eventos;
+* produtividade.
+
+---
+
+# UC32 — Gerar relatório
+
+**Ator:** Supervisor/Gestor.
+
+Formatos iniciais:
+
+```text
+CSV
+PDF
+```
+
+Relatórios previstos:
+
+* conferências;
+* divergências;
+* produtividade;
+* fornecedores;
+* materiais;
+* KPIs.
+
+---
+
+# 14. Casos de Uso — Auditoria
+
+# UC33 — Consultar auditoria
+
+**Ator:** Administrador/Supervisor autorizado.
+
+O sistema deverá registrar:
+
+```text
+Usuário
+Evento
+Data/hora
+Registro afetado
+Operação realizada
+Origem
+Dispositivo
+```
+
+---
+
+# 15. Casos de Uso — Ciência de Dados
+
+Esses casos não farão parte da primeira versão operacional, mas a arquitetura deverá estar preparada para eles.
+
+# UC34 — Analisar padrões históricos
+
+**Ator:** Analista/Gestor.
+
+Permite analisar:
+
+* padrões de divergência;
+* sazonalidade;
+* fornecedores;
+* materiais;
+* horários;
+* locais;
+* produtividade.
+
+---
+
+# UC35 — Calcular risco de divergência
+
+**Ator:** Sistema.
+
+Futuro:
+
+```text
+Nova operação
+      ↓
+Características
+      ↓
+Modelo
+      ↓
+Risco estimado
+```
+
+O resultado poderá ser utilizado para priorização operacional.
+
+---
+
+# UC36 — Detectar anomalias
+
+**Ator:** Sistema.
+
+Futuro:
+
+O sistema poderá identificar comportamentos fora do padrão histórico.
+
+Exemplo:
+
+```text
+Produtividade histórica:
+100–120 itens/hora
+
+Operação atual:
+42 itens/hora
+
+→ POSSÍVEL ANOMALIA
+```
+
+O sistema deverá sinalizar a ocorrência, não concluir automaticamente sua causa.
+
+---
+
+# 16. Matriz de casos de uso
+
+| Código | Caso de uso             | Ator principal     | MVP    |
+| ------ | ----------------------- | ------------------ | ------ |
+| UC01   | Autenticar usuário      | Todos              | Sim    |
+| UC02   | Gerenciar usuários      | Administrador      | Sim    |
+| UC03   | Gerenciar materiais     | Administrador      | Sim    |
+| UC04   | Gerenciar fornecedores  | Administrador      | Sim    |
+| UC05   | Gerenciar locais        | Administrador      | Sim    |
+| UC06   | Registrar documento     | Supervisor         | Sim    |
+| UC07   | Importar XML            | Supervisor         | Sim    |
+| UC08   | Criar conferência       | Supervisor         | Sim    |
+| UC09   | Atribuir conferência    | Supervisor         | Sim    |
+| UC10   | Consultar conferências  | Conferente         | Sim    |
+| UC11   | Iniciar conferência     | Conferente         | Sim    |
+| UC12   | Ler código              | Conferente         | Sim    |
+| UC13   | Validar material        | Sistema            | Sim    |
+| UC14   | Registrar quantidade    | Conferente         | Sim    |
+| UC15   | Registrar divergência   | Sistema            | Sim    |
+| UC16   | Registrar evidência     | Conferente         | Sim    |
+| UC17   | Continuar conferência   | Conferente         | Sim    |
+| UC18   | Finalizar conferência   | Conferente/Sistema | Sim    |
+| UC19   | Consultar divergências  | Supervisor         | Sim    |
+| UC20   | Analisar divergência    | Supervisor         | Sim    |
+| UC21   | Resolver divergência    | Supervisor         | Sim    |
+| UC22   | Nova conferência        | Supervisor         | Sim    |
+| UC23   | Conferência offline     | Conferente         | Sim    |
+| UC24   | Sincronização           | Sistema            | Sim    |
+| UC25   | Dashboard operacional   | Supervisor         | Sim    |
+| UC26   | Dashboard produtividade | Supervisor         | Sim    |
+| UC27   | KPIs logísticos         | Gestor             | Sim    |
+| UC28   | Analisar fornecedor     | Gestor             | Sim    |
+| UC29   | Analisar material       | Gestor             | Sim    |
+| UC30   | Analisar gargalos       | Gestor             | Sim    |
+| UC31   | Histórico               | Supervisor         | Sim    |
+| UC32   | Relatórios              | Gestor             | Sim    |
+| UC33   | Auditoria               | Administrador      | Sim    |
+| UC34   | Análise histórica       | Analista           | Futuro |
+| UC35   | Risco de divergência    | Sistema            | Futuro |
+| UC36   | Detecção de anomalias   | Sistema            | Futuro |
+
+---
+
+# 17. Regras de negócio fundamentais
+
+As regras abaixo deverão ser consideradas na implementação.
+
+### RN01
+
+Um usuário inativo não poderá iniciar uma conferência.
+
+### RN02
+
+Uma conferência não poderá ser finalizada enquanto existirem itens não processados.
+
+### RN03
+
+Um item com quantidade divergente deverá gerar uma ocorrência.
+
+### RN04
+
+Um material não esperado deverá gerar uma divergência.
+
+### RN05
+
+Uma conferência totalmente conforme poderá ser aprovada automaticamente.
+
+### RN06
+
+Uma conferência com divergência deverá permanecer pendente até tratamento conforme as regras configuradas.
+
+### RN07
+
+Toda decisão sobre divergência deverá gerar registro de auditoria.
+
+### RN08
+
+Eventos operacionais não deverão ser apagados durante a operação normal.
+
+### RN09
+
+Uma operação offline deverá possuir identificadores únicos para evitar duplicidade na sincronização.
+
+### RN10
+
+A alteração de dados relevantes deverá preservar o histórico necessário para auditoria e Analytics.
+
+### RN11
+
+Os KPIs deverão ser calculados a partir de dados operacionais rastreáveis.
+
+### RN12
+
+Indicadores de produtividade deverão considerar o contexto operacional e não somente velocidade absoluta.
+
+### RN13
+
+Modelos preditivos futuros não poderão substituir as regras determinísticas de conferência.
+
+---
+
+# 18. Dados mínimos produzidos por uma conferência
+
+Cada conferência deverá gerar, no mínimo:
+
+```text
+ID da conferência
+Documento
+Fornecedor
+Local
+Conferente
+Data
+Hora de início
+Hora de término
+Duração
+Quantidade de itens esperados
+Quantidade de itens processados
+Quantidade conforme
+Quantidade divergente
+Quantidade de exceções
+Quantidade de intervenções
+Quantidade de retrabalhos
+Status
+```
+
+---
+
+# 19. Dados mínimos produzidos por item
+
+```text
+ID do item
+Material
+Código
+Quantidade esperada
+Quantidade recebida
+Diferença
+Status
+Data/hora da leitura
+Data/hora da validação
+Conferente
+Dispositivo
+Divergência
+```
+
+---
+
+# 20. Dados mínimos produzidos por evento
+
+```text
+ID do evento
+Tipo do evento
+Data/hora
+Usuário
+Conferência
+Item
+Material
+Local
+Dispositivo
+Origem
+Status de sincronização
+```
+
+Esses dados serão fundamentais para reconstruir o ciclo operacional e calcular os KPIs.
+
+---
+
+# 21. Cadeia de valor do SICM
+
+O sistema deverá seguir esta lógica:
+
+```text
+OPERAÇÃO
+    ↓
+COLETA DE DADOS
+    ↓
+RASTREABILIDADE
+    ↓
+INDICADORES
+    ↓
+ANÁLISE
+    ↓
+IDENTIFICAÇÃO DE GARGALOS
+    ↓
+MELHORIA DO PROCESSO
+    ↓
+AUTOMAÇÃO
+    ↓
+NOVOS DADOS
+    ↺
+```
+
+Portanto, o SICM será projetado como um **ciclo contínuo de melhoria operacional baseado em dados**.
+
+---
+
+# 22. Próxima etapa
+
+Com os casos de uso definidos, o próximo documento será:
+
+## Documento 05 — Modelo de Dados
+
+Essa será uma etapa particularmente importante.
+
+Vamos transformar todos esses requisitos em um modelo de banco de dados, definindo:
+
+* entidades;
+* atributos;
+* chaves primárias;
+* chaves estrangeiras;
+* relacionamentos;
+* cardinalidades;
+* tabelas operacionais;
+* tabelas de eventos;
+* tabelas de auditoria;
+* estrutura para KPIs;
+* estrutura para Analytics;
+* histórico;
+* sincronização offline;
+* preparação futura para Data Warehouse.
+
+A partir daí teremos condições de desenhar o **DER do SICM** e, posteriormente, transformar o modelo em PostgreSQL e API.
+
+O ponto mais importante antes de avançarmos é que **não devemos criar uma tabela separada para cada KPI**. Os KPIs devem ser derivados de um modelo operacional e histórico bem estruturado. Isso evita redundância e permite criar novos indicadores no futuro sem alterar toda a arquitetura.
