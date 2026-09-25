@@ -1,0 +1,913 @@
+Vamos avançar. A partir daqui, o **SICM** será projetado desde o início como um sistema operacional **e analítico**. O objetivo é não precisar remodelar o banco posteriormente para conseguir calcular KPIs.
+
+# SICM — Sistema Inteligente de Conferência de Materiais
+
+## Documento 02 — Especificação de Requisitos
+
+**Versão:** 0.1
+**Status:** Em desenvolvimento
+**Módulo:** Engenharia de Requisitos
+
+---
+
+# 1. Objetivo do documento
+
+Definir os requisitos necessários para o desenvolvimento do SICM, contemplando:
+
+* operação logística;
+* conferência de materiais;
+* automação;
+* aplicação mobile;
+* sistema web;
+* rastreabilidade;
+* produtividade;
+* indicadores logísticos;
+* KPIs;
+* Analytics;
+* preparação para Ciência de Dados.
+
+---
+
+# 2. Atores
+
+Teremos inicialmente quatro atores:
+
+| Ator          | Função principal                         |
+| ------------- | ---------------------------------------- |
+| Administrador | Configuração e administração             |
+| Supervisor    | Gestão operacional                       |
+| Conferente    | Execução da conferência                  |
+| Sistema       | Automação, validações e geração de dados |
+
+O **Sistema** é tratado como ator porque executará diversas ações automaticamente.
+
+---
+
+# 3. Requisitos funcionais
+
+## RF01 — Autenticação
+
+O sistema deverá permitir que o usuário faça login.
+
+### Entrada
+
+* usuário;
+* senha.
+
+### Saída
+
+* acesso autorizado;
+* sessão autenticada.
+
+### Regras
+
+* usuário ativo poderá acessar;
+* usuário inativo não poderá acessar;
+* acesso deverá respeitar o perfil do usuário.
+
+---
+
+# 4. RF02 — Cadastro de usuários
+
+O administrador poderá:
+
+* cadastrar usuário;
+* editar usuário;
+* ativar/desativar;
+* definir perfil;
+* consultar usuários.
+
+Perfis:
+
+```text
+ADMINISTRADOR
+SUPERVISOR
+CONFERENTE
+```
+
+---
+
+# 5. RF03 — Cadastro de materiais
+
+Cada material deverá possuir, inicialmente:
+
+```text
+Código interno
+Código de barras
+Descrição
+Categoria
+Unidade de medida
+Status
+```
+
+Posteriormente poderemos adicionar:
+
+* lote;
+* validade;
+* peso;
+* dimensões;
+* fabricante;
+* localização;
+* código alternativo.
+
+---
+
+# 6. RF04 — Cadastro de fornecedores
+
+Dados básicos:
+
+```text
+Código
+Razão social
+CNPJ
+Nome fantasia
+Status
+```
+
+O histórico de operações ficará associado ao fornecedor.
+
+Isso será importante para Analytics.
+
+---
+
+# 7. RF05 — Cadastro de locais
+
+O sistema deverá permitir registrar onde a operação acontece.
+
+Exemplo:
+
+```text
+Empresa
+  └── Unidade
+        └── Centro de distribuição
+              └── Área
+```
+
+Isso permitirá comparar produtividade entre locais.
+
+---
+
+# 8. RF06 — Registro de documento de entrada
+
+O sistema deverá permitir registrar um documento de recebimento.
+
+Inicialmente:
+
+* número;
+* série;
+* fornecedor;
+* data;
+* local;
+* quantidade de itens.
+
+Posteriormente:
+
+**Importação automática do XML da NF-e.**
+
+---
+
+# 9. RF07 — Criação da conferência
+
+A partir do documento de entrada, o sistema deverá criar uma conferência.
+
+Exemplo:
+
+```text
+CONFERÊNCIA #000125
+
+Fornecedor: ABC
+Documento: NF 4587
+Local: CD São Gonçalo
+
+Itens esperados: 37
+```
+
+---
+
+# 10. RF08 — Atribuição da conferência
+
+O supervisor poderá atribuir uma conferência a um operador.
+
+O sistema deverá registrar:
+
+* conferente;
+* data/hora da atribuição;
+* data/hora de início;
+* data/hora de conclusão.
+
+Esses dados serão fundamentais para os KPIs de produtividade.
+
+---
+
+# 11. RF09 — Início da conferência
+
+Quando o operador selecionar:
+
+**INICIAR CONFERÊNCIA**
+
+o sistema deverá registrar automaticamente:
+
+```text
+data/hora
+usuário
+dispositivo
+local
+conferência
+```
+
+Não dependeremos de o operador preencher manualmente o horário.
+
+---
+
+# 12. RF10 — Identificação do material
+
+O aplicativo deverá utilizar a câmera do dispositivo para ler:
+
+* código de barras;
+* QR Code.
+
+Fluxo:
+
+```text
+Câmera
+ ↓
+Código identificado
+ ↓
+Busca do material
+ ↓
+Material localizado
+ ↓
+Validação
+```
+
+---
+
+# 13. RF11 — Validação do material
+
+O sistema deverá comparar:
+
+```text
+Material esperado
+        ×
+Material identificado
+```
+
+### Resultado
+
+```text
+CORRETO
+```
+
+ou
+
+```text
+DIVERGENTE
+```
+
+---
+
+# 14. RF12 — Conferência de quantidade
+
+O sistema deverá registrar:
+
+* quantidade esperada;
+* quantidade recebida.
+
+E calcular automaticamente:
+
+```text
+Diferença =
+Quantidade recebida
+-
+Quantidade esperada
+```
+
+Exemplo:
+
+```text
+Esperado: 500
+Recebido: 480
+
+Diferença: -20
+```
+
+---
+
+# 15. RF13 — Classificação da divergência
+
+O sistema deverá identificar o tipo de divergência.
+
+Inicialmente:
+
+```text
+ITEM NÃO ENCONTRADO
+QUANTIDADE INFERIOR
+QUANTIDADE SUPERIOR
+ITEM INCORRETO
+CÓDIGO INVÁLIDO
+ITEM NÃO CADASTRADO
+OUTRA
+```
+
+Posteriormente podemos ampliar a classificação.
+
+---
+
+# 16. RF14 — Registro de evidência
+
+Quando ocorrer uma divergência, o aplicativo deverá permitir:
+
+* fotografia;
+* observação;
+* registro do responsável.
+
+Isso cria rastreabilidade.
+
+---
+
+# 17. RF15 — Aprovação automática
+
+Quando todos os itens estiverem conformes:
+
+```text
+Conferência
+     ↓
+Todos os itens OK?
+     ↓
+    SIM
+     ↓
+APROVAÇÃO AUTOMÁTICA
+```
+
+Não será necessário um operador aprovar manualmente aquilo que já foi validado pelas regras.
+
+---
+
+# 18. RF16 — Tratamento de divergências
+
+Quando houver divergência:
+
+```text
+CONFERÊNCIA
+     ↓
+DIVERGÊNCIA
+     ↓
+BLOQUEIO
+     ↓
+SUPERVISOR
+     ↓
+ANÁLISE
+     ↓
+RESOLUÇÃO
+```
+
+O supervisor poderá:
+
+* aceitar;
+* rejeitar;
+* solicitar nova conferência;
+* registrar justificativa.
+
+---
+
+# 19. RF17 — Finalização
+
+Ao finalizar, o sistema deverá registrar:
+
+```text
+Data/hora inicial
+Data/hora final
+Duração
+Itens esperados
+Itens conferidos
+Itens conformes
+Itens divergentes
+Usuário
+Local
+Dispositivo
+Status
+```
+
+Isso será uma **fonte primária de dados para Analytics**.
+
+---
+
+# 20. RF18 — Funcionamento offline
+
+O aplicativo deverá permitir:
+
+* baixar conferências disponíveis;
+* realizar conferências;
+* registrar leituras;
+* registrar quantidades;
+* tirar fotografias;
+* armazenar eventos.
+
+Sem internet.
+
+---
+
+# 21. RF19 — Sincronização
+
+Quando a conexão retornar:
+
+```text
+Dados locais
+    ↓
+Validação
+    ↓
+Sincronização
+    ↓
+Servidor
+```
+
+O sistema deverá identificar:
+
+* registros novos;
+* registros já sincronizados;
+* conflitos;
+* falhas.
+
+---
+
+# 22. RF20 — Registro de eventos
+
+Este é um requisito **estratégico**.
+
+O sistema deverá registrar eventos importantes.
+
+Exemplo:
+
+```text
+CONFERENCIA_INICIADA
+ITEM_IDENTIFICADO
+QUANTIDADE_REGISTRADA
+ITEM_CONFORME
+DIVERGENCIA_IDENTIFICADA
+FOTO_REGISTRADA
+DIVERGENCIA_ANALISADA
+CONFERENCIA_FINALIZADA
+SINCRONIZACAO_REALIZADA
+```
+
+Cada evento deverá possuir, quando aplicável:
+
+```text
+data/hora
+usuário
+conferência
+material
+fornecedor
+local
+dispositivo
+evento
+```
+
+Isso permitirá reconstruir o processo inteiro.
+
+---
+
+# 23. RF21 — Dashboard operacional
+
+O sistema deverá apresentar indicadores operacionais.
+
+Exemplo:
+
+```text
+CONFERÊNCIAS HOJE
+126
+
+EM ANDAMENTO
+18
+
+AGUARDANDO
+7
+
+DIVERGÊNCIAS
+4
+
+FINALIZADAS
+101
+```
+
+---
+
+# 24. RF22 — Dashboard de produtividade
+
+Indicadores:
+
+### Itens/hora
+
+```text
+Itens conferidos
+────────────────
+Horas de operação
+```
+
+### Conferências/hora
+
+```text
+Conferências
+─────────────
+Horas trabalhadas
+```
+
+### Tempo médio por item
+
+```text
+Tempo total
+───────────
+Itens conferidos
+```
+
+---
+
+# 25. RF23 — Indicadores de qualidade
+
+O sistema deverá calcular:
+
+### Taxa de conformidade
+
+```text
+Itens conformes
+─────────────── × 100
+Itens conferidos
+```
+
+### Taxa de divergência
+
+```text
+Itens divergentes
+───────────────── × 100
+Itens conferidos
+```
+
+### Taxa de retrabalho
+
+```text
+Operações retrabalhadas
+─────────────────────── × 100
+Operações realizadas
+```
+
+---
+
+# 26. RF24 — Indicadores de automação
+
+Serão indicadores centrais do projeto.
+
+### Taxa de automação
+
+```text
+Itens processados sem intervenção
+────────────────────────────────── × 100
+Total de itens
+```
+
+### Taxa de intervenção
+
+```text
+Itens que exigiram intervenção
+─────────────────────────────── × 100
+Total de itens
+```
+
+### Taxa de exceção
+
+```text
+Exceções
+──────── × 100
+Operações
+```
+
+---
+
+# 27. RF25 — Indicadores de fornecedores
+
+O sistema deverá permitir analisar:
+
+* quantidade recebida;
+* conformidade;
+* divergências;
+* tempo médio;
+* frequência de ocorrências;
+* tipos de divergência;
+* evolução temporal.
+
+Exemplo:
+
+```text
+Fornecedor
+     ↓
+Histórico
+     ↓
+Recebimentos
+     ↓
+Divergências
+     ↓
+Análise
+```
+
+---
+
+# 28. RF26 — Indicadores de materiais
+
+Também teremos análise por material:
+
+* quantidade recebida;
+* quantidade divergente;
+* frequência;
+* percentual de divergência;
+* tempo de conferência;
+* ocorrências.
+
+---
+
+# 29. RF27 — Análise temporal
+
+O sistema deverá permitir analisar os dados por:
+
+* hora;
+* dia;
+* semana;
+* mês;
+* trimestre;
+* ano.
+
+Isso permitirá identificar sazonalidade e tendências.
+
+---
+
+# 30. RF28 — Análise por operador
+
+O sistema deverá permitir visualizar:
+
+* itens conferidos;
+* conferências;
+* tempo médio;
+* produtividade;
+* divergências;
+* retrabalho.
+
+**Observação:** esses indicadores deverão ser contextualizados pela complexidade das operações. Não devemos transformar um único KPI de velocidade em avaliação automática de desempenho.
+
+---
+
+# 31. RF29 — Indicadores de ciclo
+
+Vamos medir o ciclo completo:
+
+```text
+Chegada
+   ↓
+Espera
+   ↓
+Início
+   ↓
+Conferência
+   ↓
+Divergência
+   ↓
+Tratamento
+   ↓
+Liberação
+```
+
+Indicadores:
+
+* tempo de espera;
+* tempo de conferência;
+* tempo de tratamento;
+* tempo total;
+* tempo até liberação.
+
+---
+
+# 32. RF30 — Relatórios
+
+O sistema deverá permitir relatórios de:
+
+* conferências;
+* divergências;
+* produtividade;
+* fornecedores;
+* materiais;
+* automação;
+* tempos;
+* indicadores.
+
+Inicialmente podemos disponibilizar:
+
+**CSV e PDF.**
+
+---
+
+# 33. RF31 — Auditoria
+
+O sistema deverá manter histórico das operações relevantes.
+
+Exemplo:
+
+```text
+Usuário:
+Supervisor01
+
+Evento:
+Divergência aprovada
+
+Data:
+25/09/2026 10:42
+
+Conferência:
+000125
+
+Motivo:
+Quantidade aceita após validação
+```
+
+Isso é importante tanto para segurança quanto para confiabilidade dos dados analíticos.
+
+---
+
+# 34. RF32 — Preparação para Data Science
+
+O sistema deverá armazenar dados suficientes para futuramente realizar:
+
+### Análise descritiva
+
+O que aconteceu?
+
+### Diagnóstica
+
+Por que aconteceu?
+
+### Preditiva
+
+O que pode acontecer?
+
+### Prescritiva
+
+Qual ação pode ser considerada?
+
+Essa separação será importante para não misturarmos **BI tradicional** com **Machine Learning**.
+
+---
+
+# 35. Requisitos não funcionais
+
+Agora entram características de qualidade do software.
+
+### RNF01 — Usabilidade
+
+A operação mobile deverá exigir o mínimo possível de interações.
+
+Idealmente:
+
+```text
+Abrir conferência
+      ↓
+Ler código
+      ↓
+Informar quantidade
+      ↓
+Próximo item
+```
+
+---
+
+### RNF02 — Responsividade
+
+O sistema web deverá funcionar em:
+
+* computador;
+* notebook;
+* tablet.
+
+---
+
+### RNF03 — Mobile
+
+A aplicação deverá funcionar em:
+
+* Android;
+* iOS.
+
+---
+
+### RNF04 — Segurança
+
+Devemos ter:
+
+* autenticação;
+* autorização;
+* comunicação HTTPS;
+* controle de sessão;
+* proteção de dados;
+* auditoria.
+
+---
+
+### RNF05 — Integridade dos dados
+
+Uma conferência não poderá ser considerada finalizada se houver inconsistências críticas.
+
+---
+
+### RNF06 — Rastreabilidade
+
+Toda operação relevante deverá possuir:
+
+**quem + quando + onde + o quê.**
+
+---
+
+### RNF07 — Disponibilidade offline
+
+A operação de campo não poderá depender exclusivamente da conectividade.
+
+---
+
+### RNF08 — Escalabilidade
+
+A arquitetura deverá permitir posteriormente:
+
+* múltiplas empresas;
+* múltiplos locais;
+* múltiplos usuários;
+* grande volume de conferências.
+
+---
+
+# 36. Requisito analítico especial
+
+Eu adicionaria um requisito que normalmente não aparece em projetos tradicionais:
+
+## RNF09 — Dados orientados à análise
+
+> O modelo de dados deverá preservar informações suficientes para análise operacional, produtividade, KPIs logísticos, identificação de gargalos e desenvolvimento futuro de modelos estatísticos e preditivos.
+
+Isso muda a forma como vamos projetar o banco.
+
+---
+
+# 37. Matriz inicial de KPIs
+
+Vamos consolidar os principais:
+
+| Grupo         | KPI                         |
+| ------------- | --------------------------- |
+| Produtividade | Itens/hora                  |
+| Produtividade | Conferências/hora           |
+| Produtividade | Tempo médio/item            |
+| Tempo         | Tempo médio de conferência  |
+| Tempo         | Tempo de espera             |
+| Tempo         | Tempo de tratamento         |
+| Tempo         | Lead time de recebimento    |
+| Qualidade     | Taxa de conformidade        |
+| Qualidade     | Taxa de divergência         |
+| Qualidade     | Taxa de retrabalho          |
+| Automação     | Taxa de automação           |
+| Automação     | Taxa de intervenção         |
+| Automação     | Taxa de exceção             |
+| Fornecedor    | Divergências por fornecedor |
+| Fornecedor    | Conformidade por fornecedor |
+| Material      | Divergências por material   |
+| Material      | Frequência de ocorrência    |
+| Operação      | Conferências por período    |
+| Operação      | Volume recebido             |
+| Operação      | Volume conferido            |
+
+Essa lista ainda será refinada durante a modelagem de dados.
+
+---
+
+# 38. O que acabamos de estabelecer
+
+O SICM agora possui três grandes dimensões:
+
+```text
+                  SICM
+                   │
+       ┌───────────┼───────────┐
+       ↓           ↓           ↓
+    OPERAÇÃO      DADOS      ANALYTICS
+       │           │           │
+   Conferência   Eventos      KPIs
+   Recebimento   Histórico    Indicadores
+   Mobile        Rastreio     Produtividade
+   Automação                  Qualidade
+                              Performance
+                              Data Science
+```
+
+Isso é importante porque **Analytics não será um relatório colocado sobre o sistema depois**. Ele fará parte da engenharia desde a primeira tabela do banco.
+
+## Próxima etapa: Modelagem do processo
+
+Agora temos requisitos suficientes para avançar para o **Documento 03 — Modelagem do Processo de Negócio**.
+
+Nessa etapa vamos desenhar, em detalhes:
+
+**Processo de recebimento → criação da conferência → execução mobile → validação automática → divergência → tratamento → finalização → geração dos dados → KPIs.**
+
+Depois disso partimos para **Casos de Uso + Modelo de Dados**, antes de começar a implementação.
