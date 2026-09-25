@@ -1,0 +1,1196 @@
+Vamos avançar para a arquitetura técnica. Aqui a preocupação principal será manter o SICM **simples para desenvolver, modular para crescer e estruturado para Analytics desde o início**.
+
+# DOCUMENTO 06 — ARQUITETURA DO SISTEMA
+
+**Projeto:** Sistema Inteligente de Conferência de Materiais — SICM
+**Versão:** 0.1
+**Objetivo:** Definir a arquitetura técnica do SICM, seus componentes, responsabilidades, comunicação entre sistemas, funcionamento offline, sincronização, segurança, rastreabilidade e preparação para Analytics e Ciência de Dados.
+
+---
+
+# 1. Objetivo
+
+A arquitetura deverá suportar dois ambientes principais:
+
+1. **Sistema Web**, utilizado principalmente pela administração e supervisão.
+2. **Aplicação Mobile**, utilizada na operação de conferência.
+
+Ambos deverão utilizar uma **API central** para comunicação com o banco de dados e com os serviços do sistema.
+
+A arquitetura também deverá permitir a evolução futura para:
+
+* dashboards;
+* Data Analytics;
+* Data Warehouse/Data Mart;
+* Ciência de Dados;
+* modelos preditivos;
+* integrações externas.
+
+---
+
+# 2. Princípio Arquitetural
+
+O SICM seguirá o seguinte fluxo:
+
+```text
+┌─────────────────────┐
+│     USUÁRIO WEB     │
+└──────────┬──────────┘
+           │
+           │ HTTPS
+           ▼
+┌─────────────────────┐
+│      API SICM       │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│     BANCO DE DADOS  │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│ EVENTOS / HISTÓRICO │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│ ANALYTICS / KPIs    │
+└─────────────────────┘
+
+
+┌─────────────────────┐
+│   USUÁRIO MOBILE    │
+└──────────┬──────────┘
+           │
+           │ HTTPS
+           ▼
+┌─────────────────────┐
+│      API SICM       │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│     BANCO DE DADOS  │
+└─────────────────────┘
+```
+
+---
+
+# 3. Componentes Principais
+
+A primeira versão será composta conceitualmente por:
+
+```text
+1. Aplicação Web
+2. Aplicação Mobile
+3. API
+4. Banco de Dados
+5. Armazenamento de Evidências
+6. Serviço de Autenticação
+7. Serviço de Eventos
+8. Camada de Analytics
+9. Camada futura de Data Science
+```
+
+---
+
+# 4. Aplicação Web
+
+A aplicação Web será responsável principalmente pela gestão.
+
+Funções previstas:
+
+* login;
+* usuários;
+* materiais;
+* fornecedores;
+* locais;
+* documentos;
+* conferências;
+* divergências;
+* análise de ocorrências;
+* dashboards;
+* KPIs;
+* relatórios;
+* auditoria.
+
+### Usuários principais
+
+* Administrador;
+* Supervisor.
+
+O conferente também poderá acessar funções Web quando necessário, mas a operação principal deverá ocorrer pelo Mobile.
+
+---
+
+# 5. Aplicação Mobile
+
+A aplicação Mobile será direcionada à execução da conferência.
+
+Funções principais:
+
+```text
+Login
+  ↓
+Conferências atribuídas
+  ↓
+Selecionar conferência
+  ↓
+Iniciar
+  ↓
+Ler código
+  ↓
+Identificar material
+  ↓
+Validar
+  ↓
+Informar quantidade
+  ↓
+Conforme?
+ ┌───────┴────────┐
+SIM                NÃO
+ │                  │
+ ▼                  ▼
+Continuar       Registrar divergência
+                    │
+                    ▼
+                Evidência
+                    │
+                    ▼
+                  Continuar
+                    │
+                    ▼
+                 Finalizar
+```
+
+---
+
+# 6. Uso da Câmera
+
+A câmera do dispositivo será utilizada para identificação de materiais.
+
+O fluxo será:
+
+```text
+Câmera
+   ↓
+Leitura do código
+   ↓
+Código identificado
+   ↓
+Aplicação consulta dados
+   ↓
+Material identificado
+   ↓
+Validação
+```
+
+O sistema deverá ser preparado para trabalhar com códigos compatíveis com a operação.
+
+Exemplos:
+
+* código de barras;
+* QR Code;
+* outros padrões posteriormente necessários.
+
+A arquitetura não deverá depender exclusivamente de um único padrão de identificação.
+
+---
+
+# 7. API
+
+A API será o principal ponto de comunicação entre:
+
+* Web;
+* Mobile;
+* banco de dados;
+* serviços internos;
+* futuras integrações.
+
+Fluxo:
+
+```text
+WEB ───────┐
+           │
+MOBILE ────┼──► API ───► BANCO
+           │
+OUTROS ────┘
+```
+
+Isso evita que Web e Mobile acessem diretamente o banco de dados.
+
+---
+
+# 8. Responsabilidades da API
+
+A API será responsável por:
+
+* autenticação;
+* autorização;
+* validação;
+* regras de negócio;
+* criação de conferências;
+* consulta de materiais;
+* registro de quantidades;
+* criação de divergências;
+* registro de evidências;
+* geração de eventos;
+* sincronização;
+* consultas analíticas;
+* integração com serviços externos.
+
+---
+
+# 9. Regra de Ouro da Arquitetura
+
+O Mobile e o Web **não deverão implementar diretamente as regras centrais do negócio de maneira independente**.
+
+Exemplo incorreto:
+
+```text
+WEB ─────► regra própria
+MOBILE ──► regra própria
+```
+
+Isso pode gerar resultados diferentes.
+
+A abordagem preferencial:
+
+```text
+WEB ─────┐
+         │
+MOBILE ──┼──► API ───► REGRA DE NEGÓCIO
+         │
+OUTROS ──┘
+```
+
+Assim, a regra de validação fica centralizada.
+
+---
+
+# 10. Banco de Dados
+
+O banco operacional será responsável pelos dados transacionais.
+
+Ele armazenará:
+
+* usuários;
+* perfis;
+* materiais;
+* fornecedores;
+* locais;
+* documentos;
+* itens;
+* conferências;
+* divergências;
+* evidências;
+* eventos;
+* sincronizações.
+
+A arquitetura será preparada para utilização de **PostgreSQL** como banco relacional.
+
+---
+
+# 11. Separação entre Operação e Analytics
+
+O banco operacional não deverá ser tratado como um grande depósito de consultas analíticas pesadas.
+
+Arquitetura prevista:
+
+```text
+                 OPERAÇÃO
+                    │
+                    ▼
+             BANCO OPERACIONAL
+                    │
+                    ▼
+              EVENTOS / DADOS
+                    │
+                    ▼
+             CAMADA ANALÍTICA
+                    │
+          ┌─────────┴─────────┐
+          ▼                   ▼
+       DASHBOARD          DATA SCIENCE
+```
+
+Inicialmente, a camada analítica poderá utilizar consultas diretamente sobre o banco operacional.
+
+Com o crescimento do sistema, poderá ser criada uma estrutura separada de Data Mart/Data Warehouse.
+
+---
+
+# 12. Armazenamento de Evidências
+
+Fotografias e outros arquivos não deverão ser armazenados diretamente como grandes objetos dentro das tabelas operacionais, salvo necessidade específica.
+
+Arquitetura conceitual:
+
+```text
+MOBILE
+  │
+  │ fotografia
+  ▼
+ARMAZENAMENTO DE ARQUIVOS
+  │
+  ▼
+REFERÊNCIA
+  │
+  ▼
+EVIDENCIA
+```
+
+O banco armazenará informações como:
+
+* identificador;
+* tipo;
+* referência do arquivo;
+* divergência relacionada;
+* usuário;
+* data/hora.
+
+---
+
+# 13. Funcionamento Offline
+
+O Mobile deverá possuir uma camada local para operações offline.
+
+Fluxo:
+
+```text
+             INTERNET
+                 │
+          ┌──────┴──────┐
+          │             │
+        ONLINE        OFFLINE
+          │             │
+          ▼             ▼
+         API      BANCO LOCAL
+          │             │
+          ▼             ▼
+       SERVIDOR      EVENTOS
+                        │
+                        ▼
+                   SINCRONIZAÇÃO
+                        │
+                        ▼
+                       API
+                        │
+                        ▼
+                  BANCO CENTRAL
+```
+
+---
+
+# 14. O que poderá funcionar Offline
+
+A primeira versão deverá priorizar:
+
+* consulta das conferências atribuídas;
+* identificação de materiais;
+* leitura de códigos;
+* registro de quantidades;
+* registro de divergências;
+* captura de evidências;
+* registro de eventos;
+* conclusão local da conferência.
+
+Operações que dependam obrigatoriamente de informação centralizada poderão exigir conexão.
+
+---
+
+# 15. Sincronização
+
+Quando a conexão retornar:
+
+```text
+BANCO LOCAL
+     │
+     ▼
+VERIFICAR REGISTROS PENDENTES
+     │
+     ▼
+ENVIAR PARA API
+     │
+     ▼
+VALIDAR
+     │
+     ▼
+GRAVAR NO SERVIDOR
+     │
+     ▼
+CONFIRMAR SINCRONIZAÇÃO
+     │
+     ▼
+MARCAR REGISTRO COMO SINCRONIZADO
+```
+
+A sincronização deverá ser idempotente sempre que possível.
+
+Isso significa que o envio repetido do mesmo evento não deverá criar duplicações.
+
+---
+
+# 16. Identificação de Operações Offline
+
+Cada evento deverá possuir um identificador único gerado no momento da operação.
+
+Exemplo conceitual:
+
+```text
+EVENTO-001
+EVENTO-002
+EVENTO-003
+```
+
+Esses identificadores poderão ser substituídos por UUIDs na implementação.
+
+Quando o dispositivo sincronizar:
+
+```text
+EVENTO-001 → recebido
+EVENTO-002 → recebido
+EVENTO-003 → recebido
+```
+
+Se EVENTO-002 for enviado novamente, o servidor deverá reconhecer que o evento já foi processado.
+
+---
+
+# 17. Autenticação
+
+O acesso ao sistema deverá exigir autenticação.
+
+Fluxo:
+
+```text
+Usuário
+   │
+   ▼
+Login
+   │
+   ▼
+API
+   │
+   ▼
+Validar credenciais
+   │
+   ▼
+Usuário válido?
+ ┌─┴───────┐
+ NÃO       SIM
+ │          │
+ ▼          ▼
+Negar      Token
+acesso      │
+            ▼
+        Acessar sistema
+```
+
+A autorização deverá considerar o perfil do usuário.
+
+---
+
+# 18. Autorização
+
+Exemplo conceitual:
+
+| Função       | Administrador | Supervisor | Conferente |
+| ------------ | ------------: | ---------: | ---------: |
+| Usuários     |           Sim |        Não |        Não |
+| Materiais    |           Sim |        Sim |   Consulta |
+| Fornecedores |           Sim |        Sim |   Consulta |
+| Conferências |           Sim |        Sim |    Executa |
+| Divergências |           Sim |        Sim |   Registra |
+| Análise      |           Sim |        Sim |        Não |
+| Dashboards   |           Sim |        Sim |   Limitado |
+| Auditoria    |           Sim |        Sim |        Não |
+
+A matriz definitiva será especificada posteriormente.
+
+---
+
+# 19. Camada de Regras de Negócio
+
+As regras do SICM deverão ficar organizadas em uma camada própria.
+
+Exemplos:
+
+```text
+ValidarMaterial()
+ValidarQuantidade()
+CriarDivergencia()
+FinalizarConferencia()
+PodeAprovarAutomaticamente()
+RegistrarEvento()
+SincronizarOperacao()
+```
+
+Isso facilita:
+
+* testes;
+* manutenção;
+* evolução;
+* reutilização;
+* redução de duplicidade.
+
+---
+
+# 20. Validação Automática
+
+A validação deverá seguir regras determinísticas.
+
+Exemplo:
+
+```text
+Código esperado
+      │
+      ▼
+Código recebido
+      │
+      ▼
+São iguais?
+   ┌──┴──┐
+  SIM    NÃO
+   │       │
+   ▼       ▼
+Conforme Divergência
+```
+
+Para quantidade:
+
+```text
+Quantidade recebida
+        │
+        ▼
+Comparar com esperada
+        │
+        ▼
+Diferença?
+   ┌────┴────┐
+   NÃO       SIM
+    │          │
+    ▼          ▼
+ Conforme   Divergência
+```
+
+---
+
+# 21. Aprovação Automática
+
+Uma conferência poderá ser aprovada automaticamente quando todos os critérios objetivos forem atendidos.
+
+Exemplo:
+
+```text
+Todos os itens identificados
+          +
+Quantidades conformes
+          +
+Nenhuma divergência
+          +
+Dados obrigatórios preenchidos
+          │
+          ▼
+   APROVAÇÃO AUTOMÁTICA
+```
+
+Caso exista uma exceção:
+
+```text
+Divergência
+    │
+    ▼
+AGUARDANDO ANÁLISE
+    │
+    ▼
+SUPERVISOR
+```
+
+---
+
+# 22. Human-in-the-Loop
+
+O sistema deverá automatizar o que pode ser decidido por regras objetivas.
+
+O ser humano deverá atuar principalmente nas exceções.
+
+```text
+                  OPERAÇÃO
+                     │
+                     ▼
+               REGRAS OBJETIVAS
+                     │
+             ┌───────┴───────┐
+             ▼               ▼
+         CONFORME        EXCEÇÃO
+             │               │
+             ▼               ▼
+        AUTOMÁTICO       HUMANO
+                             │
+                             ▼
+                         DECISÃO
+```
+
+Esse princípio será importante para evitar que a futura Inteligência Artificial seja utilizada onde uma regra simples já resolve o problema.
+
+---
+
+# 23. Eventos
+
+Operações importantes deverão gerar eventos.
+
+Exemplo:
+
+```text
+CONFERENCIA_INICIADA
+        ↓
+ITEM_IDENTIFICADO
+        ↓
+ITEM_VALIDADO
+        ↓
+QUANTIDADE_REGISTRADA
+        ↓
+ITEM_CONFORME
+        ↓
+CONFERENCIA_FINALIZADA
+```
+
+Quando houver problema:
+
+```text
+ITEM_IDENTIFICADO
+        ↓
+VALIDAÇÃO
+        ↓
+DIVERGENCIA_IDENTIFICADA
+        ↓
+FOTO_REGISTRADA
+        ↓
+DIVERGENCIA_ANALISADA
+        ↓
+DIVERGENCIA_RESOLVIDA
+```
+
+---
+
+# 24. Analytics
+
+A camada analítica deverá consumir os dados produzidos pela operação.
+
+Arquitetura:
+
+```text
+OPERAÇÃO
+   │
+   ▼
+BANCO
+   │
+   ▼
+EVENTOS
+   │
+   ▼
+TRATAMENTO
+   │
+   ▼
+INDICADORES
+   │
+   ▼
+DASHBOARDS
+```
+
+---
+
+# 25. Indicadores Operacionais
+
+O dashboard operacional deverá apresentar informações como:
+
+* conferências criadas;
+* conferências em andamento;
+* conferências aguardando análise;
+* conferências concluídas;
+* divergências abertas;
+* operadores ativos;
+* volume de itens conferidos.
+
+---
+
+# 26. Indicadores de Produtividade
+
+Exemplos:
+
+```text
+Itens por hora
+Conferências por hora
+Tempo médio por item
+Tempo médio por conferência
+Itens por operador
+Conferências por operador
+```
+
+Esses indicadores deverão ser contextualizados.
+
+A produtividade não deverá ser interpretada isoladamente como "quanto mais rápido, melhor".
+
+Uma operação rápida com alto índice de erro não representa necessariamente ganho de produtividade.
+
+---
+
+# 27. Indicadores de Qualidade
+
+Exemplos:
+
+```text
+Taxa de conformidade
+Taxa de divergência
+Quantidade de divergências
+Taxa de retrabalho
+Divergências por fornecedor
+Divergências por material
+```
+
+---
+
+# 28. Indicadores de Automação
+
+O sistema deverá medir o próprio grau de automação.
+
+Exemplos:
+
+```text
+Taxa de aprovação automática
+Taxa de intervenção humana
+Taxa de exceção
+Taxa de retrabalho
+Taxa de conferências sem intervenção
+```
+
+Isso permitirá avaliar se a automação realmente está reduzindo esforço operacional.
+
+---
+
+# 29. Análise de Gargalos
+
+A arquitetura deverá permitir acompanhar as etapas:
+
+```text
+RECEBIMENTO
+     ↓
+ESPERA
+     ↓
+ATRIBUIÇÃO
+     ↓
+INÍCIO
+     ↓
+CONFERÊNCIA
+     ↓
+DIVERGÊNCIA
+     ↓
+ANÁLISE
+     ↓
+RESOLUÇÃO
+     ↓
+FINALIZAÇÃO
+```
+
+Para cada etapa poderá ser calculado o tempo gasto.
+
+Assim será possível identificar onde a operação está acumulando tempo.
+
+---
+
+# 30. Ciência de Dados
+
+A Ciência de Dados será incorporada posteriormente.
+
+A arquitetura deverá preparar os dados para:
+
+### Predição de divergência
+
+Exemplo conceitual:
+
+```text
+Histórico
+   +
+Fornecedor
+   +
+Material
+   +
+Quantidade
+   +
+Horário
+   +
+Local
+   +
+Histórico de ocorrências
+        │
+        ▼
+MODELO
+        │
+        ▼
+RISCO DE DIVERGÊNCIA
+```
+
+O resultado poderá ser utilizado para priorização.
+
+---
+
+# 31. Detecção de Anomalias
+
+O sistema poderá posteriormente identificar comportamentos fora do padrão histórico.
+
+Exemplo:
+
+```text
+Produtividade histórica:
+100–120 itens/hora
+
+Nova operação:
+42 itens/hora
+
+        ↓
+
+Possível anomalia
+        ↓
+Investigar contexto
+```
+
+O sistema não deverá assumir automaticamente a causa.
+
+Pode existir:
+
+* problema no equipamento;
+* operação diferente;
+* material diferente;
+* conferência mais complexa;
+* ausência de conexão;
+* erro de registro.
+
+---
+
+# 32. Arquitetura Futura de Inteligência
+
+A evolução prevista:
+
+```text
+                 DADOS
+                   │
+                   ▼
+             DESCRITIVO
+                   │
+                   ▼
+             DIAGNÓSTICO
+                   │
+                   ▼
+              PREDITIVO
+                   │
+                   ▼
+             PRESCRITIVO
+```
+
+A primeira versão do SICM deverá priorizar os dois primeiros níveis.
+
+---
+
+# 33. Segurança
+
+A arquitetura deverá considerar:
+
+* autenticação;
+* autorização;
+* comunicação segura;
+* armazenamento seguro de senhas;
+* controle de acesso;
+* validação de dados;
+* auditoria;
+* rastreabilidade;
+* proteção dos arquivos;
+* controle de sessões;
+* registro de eventos relevantes.
+
+A segurança deverá ser tratada como requisito arquitetural, não como recurso posterior.
+
+---
+
+# 34. Integrações Futuras
+
+A API deverá permitir futuras integrações com:
+
+* ERP;
+* WMS;
+* sistemas de estoque;
+* sistemas de compras;
+* sistemas fiscais;
+* fornecedores;
+* BI;
+* serviços de armazenamento;
+* outros sistemas corporativos.
+
+A arquitetura não deverá depender de uma única integração externa.
+
+---
+
+# 35. Estrutura Conceitual do Projeto
+
+A organização lógica poderá seguir:
+
+```text
+SICM
+│
+├── Web
+│
+├── Mobile
+│
+├── API
+│   ├── Autenticação
+│   ├── Usuários
+│   ├── Materiais
+│   ├── Fornecedores
+│   ├── Documentos
+│   ├── Conferências
+│   ├── Divergências
+│   ├── Evidências
+│   ├── Eventos
+│   └── Sincronização
+│
+├── Banco
+│
+├── Armazenamento
+│
+├── Analytics
+│
+└── Data Science
+```
+
+---
+
+# 36. Fluxo Completo do Sistema
+
+A arquitetura completa pode ser representada por:
+
+```text
+                  ┌───────────────┐
+                  │     WEB       │
+                  └───────┬───────┘
+                          │
+                          │
+                  ┌───────▼───────┐
+                  │               │
+                  │      API      │
+                  │               │
+                  └───────┬───────┘
+                          │
+              ┌───────────┼───────────┐
+              │           │           │
+              ▼           ▼           ▼
+           REGRAS      BANCO       EVENTOS
+              │           │           │
+              │           │           ▼
+              │           │       ANALYTICS
+              │           │           │
+              │           │           ▼
+              │           │      DASHBOARDS
+              │           │
+              │           ▼
+              │      HISTÓRICO
+              │
+              ▼
+        VALIDAÇÃO / AUTOMAÇÃO
+
+
+        ┌───────────────┐
+        │    MOBILE     │
+        └───────┬───────┘
+                │
+          ┌─────┴─────┐
+          │           │
+       ONLINE       OFFLINE
+          │           │
+          ▼           ▼
+         API       BANCO LOCAL
+                      │
+                      ▼
+                 SINCRONIZAÇÃO
+                      │
+                      ▼
+                     API
+```
+
+---
+
+# 37. Princípios Arquiteturais
+
+O desenvolvimento deverá seguir os seguintes princípios:
+
+### 1. API centralizada
+
+Web e Mobile não acessam diretamente o banco.
+
+### 2. Regras de negócio centralizadas
+
+Evitar regras duplicadas entre aplicações.
+
+### 3. Offline-first para a operação mobile
+
+A conferência não deverá depender integralmente de conectividade.
+
+### 4. Eventos rastreáveis
+
+Operações importantes devem gerar histórico.
+
+### 5. Dados preparados para Analytics
+
+Toda operação relevante deve produzir dados estruturados.
+
+### 6. Automação determinística
+
+Regras objetivas devem ser automatizadas antes de utilizar modelos inteligentes.
+
+### 7. Human-in-the-loop
+
+Exceções continuam sob análise humana.
+
+### 8. Evolução incremental
+
+O sistema deverá crescer por módulos.
+
+### 9. Separação operacional/analítica
+
+A operação não deve ficar dependente de processamento analítico pesado.
+
+### 10. Simplicidade
+
+A arquitetura não deverá incorporar tecnologias apenas porque são tecnicamente possíveis.
+
+---
+
+# 38. Primeira Arquitetura Implementável
+
+A primeira versão poderá ser construída com:
+
+```text
+WEB
+   │
+   ▼
+API
+   │
+   ▼
+POSTGRESQL
+   │
+   ├── Dados operacionais
+   ├── Eventos
+   └── Auditoria
+
+MOBILE
+   │
+   ├── Online → API
+   │
+   └── Offline → Banco local → Sincronização
+```
+
+A camada de Analytics poderá inicialmente consultar os dados estruturados do sistema.
+
+Posteriormente:
+
+```text
+POSTGRESQL
+     │
+     ▼
+DATA MART
+     │
+     ▼
+BI / ANALYTICS
+     │
+     ▼
+DATA SCIENCE
+```
+
+---
+
+# 39. Decisões Ainda Pendentes
+
+A arquitetura conceitual está definida, mas algumas decisões técnicas deverão ser formalizadas antes da implementação:
+
+* framework da API;
+* tecnologia da aplicação Web;
+* tecnologia da aplicação Mobile;
+* mecanismo de armazenamento local;
+* mecanismo de autenticação;
+* serviço de armazenamento de imagens;
+* estratégia de deploy;
+* ambiente de desenvolvimento;
+* estratégia de testes;
+* CI/CD;
+* monitoramento.
+
+Essas decisões serão documentadas antes do início da codificação.
+
+---
+
+# 40. Resultado do Documento
+
+O SICM agora possui uma arquitetura conceitual que conecta:
+
+```text
+USUÁRIO
+   ↓
+WEB / MOBILE
+   ↓
+API
+   ↓
+REGRAS DE NEGÓCIO
+   ↓
+BANCO OPERACIONAL
+   ↓
+EVENTOS
+   ↓
+ANALYTICS
+   ↓
+KPIs
+   ↓
+CIÊNCIA DE DADOS
+```
+
+A arquitetura também contempla:
+
+* operação online;
+* operação offline;
+* sincronização;
+* leitura por câmera;
+* validação automática;
+* tratamento de exceções;
+* evidências;
+* auditoria;
+* indicadores;
+* análise de gargalos;
+* futura inteligência preditiva.
+
+---
+
+## Status
+
+**Documento 06 — Arquitetura do Sistema: CONCLUÍDO — versão 0.1**
+
+### Próximo documento
+
+**DOCUMENTO 07 — Arquitetura Técnica e Stack de Desenvolvimento**
+
+Nesse documento serão tomadas as decisões tecnológicas concretas do projeto, incluindo:
+
+* linguagem;
+* framework da API;
+* Web;
+* Mobile;
+* PostgreSQL;
+* banco local;
+* autenticação;
+* armazenamento;
+* estrutura do projeto;
+* Git/GitHub;
+* ambientes;
+* testes;
+* documentação;
+* estratégia de desenvolvimento do zero.
+
+O próximo passo é particularmente importante: sair da **arquitetura conceitual** e definir a **stack tecnológica e a estrutura real do código** antes de começarmos a implementar.
