@@ -1,0 +1,1438 @@
+Vamos definir agora a **stack tecnológica e a estrutura real de desenvolvimento**. A ideia é escolher tecnologias suficientes para o projeto, sem introduzir complexidade desnecessária.
+
+# DOCUMENTO 07 — ARQUITETURA TÉCNICA E STACK DE DESENVOLVIMENTO
+
+**Projeto:** Sistema Inteligente de Conferência de Materiais — SICM
+**Versão:** 0.1
+**Objetivo:** Definir as tecnologias, ferramentas, ambientes e organização técnica necessários para desenvolver o SICM do zero.
+
+---
+
+# 1. Objetivo
+
+Este documento transforma a arquitetura conceitual definida no Documento 06 em uma arquitetura técnica inicial.
+
+A stack deverá atender simultaneamente a cinco objetivos:
+
+1. simplicidade de desenvolvimento;
+2. operação Web;
+3. operação Mobile;
+4. forte estrutura de dados e Analytics;
+5. possibilidade de evolução para Ciência de Dados.
+
+---
+
+# 2. Stack Tecnológica Definida
+
+A primeira versão utilizará a seguinte estrutura:
+
+| Camada                    | Tecnologia                           |
+| ------------------------- | ------------------------------------ |
+| Backend/API               | Python + FastAPI                     |
+| Banco de dados            | PostgreSQL                           |
+| ORM                       | SQLAlchemy                           |
+| Validação de dados        | Pydantic                             |
+| Autenticação              | JWT                                  |
+| Web                       | React + TypeScript                   |
+| Mobile                    | Flutter + Dart                       |
+| Banco local Mobile        | SQLite                               |
+| API                       | REST                                 |
+| Documentação API          | OpenAPI/Swagger                      |
+| Versionamento             | Git                                  |
+| Repositório               | GitHub                               |
+| Testes Backend            | Pytest                               |
+| Testes Web                | Vitest                               |
+| Testes Mobile             | Flutter Test                         |
+| Analytics inicial         | SQL + Python                         |
+| Data Science futura       | Pandas + Scikit-learn                |
+| Armazenamento de arquivos | Serviço de objetos compatível com S3 |
+| Banco analítico futuro    | Data Mart/Data Warehouse             |
+| Containerização           | Não obrigatória na primeira etapa    |
+
+---
+
+# 3. Justificativa da Stack
+
+## 3.1 Python
+
+Python será utilizado principalmente no backend e na camada analítica.
+
+Isso cria uma continuidade tecnológica entre:
+
+```text
+API
+ ↓
+Processamento de dados
+ ↓
+Analytics
+ ↓
+Data Science
+```
+
+A escolha também evita a necessidade de utilizar linguagens diferentes para o backend e para a futura camada de Ciência de Dados.
+
+---
+
+# 4. FastAPI
+
+O backend será construído utilizando FastAPI.
+
+Responsabilidades:
+
+* API REST;
+* autenticação;
+* regras de negócio;
+* validação;
+* acesso ao banco;
+* sincronização;
+* eventos;
+* integração;
+* endpoints analíticos.
+
+Estrutura conceitual:
+
+```text
+Cliente
+   ↓
+FastAPI
+   ↓
+Serviços
+   ↓
+Regras de negócio
+   ↓
+SQLAlchemy
+   ↓
+PostgreSQL
+```
+
+---
+
+# 5. PostgreSQL
+
+O PostgreSQL será o banco operacional principal.
+
+Será responsável por armazenar:
+
+* usuários;
+* perfis;
+* materiais;
+* fornecedores;
+* locais;
+* documentos;
+* itens;
+* conferências;
+* divergências;
+* evidências;
+* eventos;
+* sincronizações.
+
+O banco deverá ser estruturado desde o início pensando em:
+
+* integridade;
+* relacionamentos;
+* índices;
+* histórico;
+* consultas analíticas;
+* escalabilidade.
+
+---
+
+# 6. SQLAlchemy
+
+O SQLAlchemy será utilizado como camada ORM.
+
+Fluxo:
+
+```text
+FastAPI
+   ↓
+Service
+   ↓
+Repository / SQLAlchemy
+   ↓
+PostgreSQL
+```
+
+Isso permitirá trabalhar com objetos Python sem perder a possibilidade de utilizar SQL diretamente quando necessário.
+
+---
+
+# 7. Pydantic
+
+Pydantic será utilizado para validação e serialização dos dados da API.
+
+Exemplo conceitual:
+
+```text
+Requisição
+    ↓
+Pydantic
+    ↓
+Dados válidos?
+ ┌──┴───┐
+ NÃO    SIM
+  │      │
+ erro    ▼
+       Serviço
+```
+
+Isso será especialmente importante para:
+
+* quantidade;
+* códigos;
+* identificadores;
+* datas;
+* status;
+* dados de sincronização.
+
+---
+
+# 8. API REST
+
+A comunicação entre os sistemas utilizará HTTP/HTTPS e API REST.
+
+Exemplo:
+
+```text
+GET    /materiais
+POST   /materiais
+GET    /conferencias
+POST   /conferencias
+GET    /conferencias/{id}
+POST   /conferencias/{id}/iniciar
+POST   /conferencias/{id}/finalizar
+POST   /itens/{id}/conferir
+POST   /divergencias
+POST   /sincronizacao
+```
+
+Os endpoints definitivos serão documentados posteriormente.
+
+---
+
+# 9. OpenAPI / Swagger
+
+A API deverá possuir documentação automática.
+
+Estrutura:
+
+```text
+FastAPI
+   ↓
+OpenAPI
+   ↓
+Swagger
+```
+
+Isso facilitará:
+
+* desenvolvimento;
+* testes;
+* integração Web;
+* integração Mobile;
+* documentação;
+* manutenção.
+
+---
+
+# 10. React + TypeScript
+
+A aplicação Web será desenvolvida utilizando React com TypeScript.
+
+O Web será utilizado principalmente para:
+
+* administração;
+* supervisão;
+* análise;
+* dashboards;
+* relatórios;
+* tratamento de divergências.
+
+Estrutura:
+
+```text
+React
+   ↓
+TypeScript
+   ↓
+API REST
+   ↓
+FastAPI
+```
+
+---
+
+# 11. Por que TypeScript
+
+TypeScript adiciona tipagem ao desenvolvimento Web.
+
+Isso será útil porque o SICM possui grande quantidade de objetos estruturados:
+
+* usuários;
+* materiais;
+* documentos;
+* conferências;
+* itens;
+* divergências;
+* indicadores.
+
+A tipagem ajuda a reduzir inconsistências entre frontend e API.
+
+---
+
+# 12. Flutter
+
+A aplicação Mobile será construída utilizando Flutter.
+
+Objetivos:
+
+* Android;
+* iOS;
+* interface única;
+* acesso à câmera;
+* armazenamento local;
+* sincronização;
+* funcionamento offline.
+
+Arquitetura:
+
+```text
+Flutter
+   │
+   ├── Interface
+   ├── Estado
+   ├── Banco local
+   ├── Câmera
+   └── API
+```
+
+---
+
+# 13. Dart
+
+O aplicativo Flutter será desenvolvido em Dart.
+
+O código Mobile ficará separado do backend Python.
+
+Portanto:
+
+```text
+Backend
+Python
+FastAPI
+
+Mobile
+Dart
+Flutter
+```
+
+A comunicação entre os dois será realizada pela API.
+
+---
+
+# 14. SQLite
+
+O Mobile utilizará SQLite para armazenamento local.
+
+Será utilizado principalmente para:
+
+* conferências baixadas;
+* itens;
+* eventos pendentes;
+* divergências;
+* evidências pendentes;
+* controle de sincronização.
+
+Fluxo:
+
+```text
+Flutter
+   ↓
+SQLite local
+   ↓
+Sincronização
+   ↓
+FastAPI
+   ↓
+PostgreSQL
+```
+
+---
+
+# 15. Estratégia Offline
+
+A aplicação Mobile será projetada para trabalhar em dois estados:
+
+### Online
+
+```text
+Mobile → API → PostgreSQL
+```
+
+### Offline
+
+```text
+Mobile → SQLite
+```
+
+Quando retornar a conexão:
+
+```text
+SQLite
+  ↓
+Fila de sincronização
+  ↓
+API
+  ↓
+PostgreSQL
+```
+
+---
+
+# 16. Fila de Sincronização
+
+Os registros criados offline deverão possuir um estado.
+
+Exemplo:
+
+```text
+PENDENTE
+   ↓
+ENVIANDO
+   ↓
+SINCRONIZADO
+```
+
+Em caso de erro:
+
+```text
+PENDENTE
+   ↓
+ENVIANDO
+   ↓
+ERRO
+   ↓
+TENTAR NOVAMENTE
+```
+
+Isso permitirá recuperar operações sem perder dados.
+
+---
+
+# 17. Identificação de Duplicidade
+
+Cada operação criada no Mobile deverá possuir um identificador único.
+
+Exemplo:
+
+```text
+UUID_EVENTO
+UUID_CONFERENCIA
+UUID_ITEM
+UUID_DIVERGENCIA
+```
+
+O servidor deverá utilizar esses identificadores para evitar duplicações durante a sincronização.
+
+---
+
+# 18. Autenticação
+
+A autenticação inicial será baseada em:
+
+```text
+Email
+Senha
+   ↓
+FastAPI
+   ↓
+Validação
+   ↓
+Token JWT
+```
+
+O token será utilizado nas requisições subsequentes.
+
+Exemplo:
+
+```text
+LOGIN
+ ↓
+TOKEN
+ ↓
+GET /conferencias
+ ↓
+POST /conferencias
+ ↓
+POST /itens/conferir
+```
+
+---
+
+# 19. Autorização
+
+O backend deverá verificar:
+
+```text
+Usuário
+   ↓
+Perfil
+   ↓
+Permissão
+   ↓
+Recurso
+```
+
+A regra deverá ser aplicada no servidor.
+
+O frontend não será responsável por garantir segurança.
+
+---
+
+# 20. Estrutura do Backend
+
+A estrutura inicial poderá ser:
+
+```text
+backend/
+│
+├── app/
+│   ├── main.py
+│   │
+│   ├── core/
+│   │   ├── config.py
+│   │   ├── security.py
+│   │   └── database.py
+│   │
+│   ├── models/
+│   │   ├── usuario.py
+│   │   ├── perfil.py
+│   │   ├── material.py
+│   │   ├── fornecedor.py
+│   │   ├── local.py
+│   │   ├── documento.py
+│   │   ├── conferencia.py
+│   │   ├── divergencia.py
+│   │   └── evento.py
+│   │
+│   ├── schemas/
+│   │   ├── usuario.py
+│   │   ├── material.py
+│   │   ├── conferencia.py
+│   │   └── divergencia.py
+│   │
+│   ├── repositories/
+│   │
+│   ├── services/
+│   │   ├── conferencia_service.py
+│   │   ├── validacao_service.py
+│   │   ├── divergencia_service.py
+│   │   └── sincronizacao_service.py
+│   │
+│   ├── api/
+│   │   └── routes/
+│   │
+│   └── events/
+│
+├── tests/
+│
+├── alembic/
+│
+├── requirements.txt
+│
+└── README.md
+```
+
+---
+
+# 21. Responsabilidade das Camadas
+
+## Models
+
+Representam as entidades persistidas.
+
+## Schemas
+
+Representam os dados recebidos e devolvidos pela API.
+
+## Repositories
+
+Responsáveis pelo acesso aos dados.
+
+## Services
+
+Concentram regras de negócio.
+
+## Routes
+
+Expõem os endpoints da API.
+
+## Core
+
+Configurações, segurança e banco.
+
+## Events
+
+Tratamento dos eventos operacionais.
+
+---
+
+# 22. Estrutura Web
+
+A aplicação Web poderá seguir:
+
+```text
+web/
+│
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── layouts/
+│   ├── services/
+│   ├── hooks/
+│   ├── types/
+│   ├── utils/
+│   └── routes/
+│
+├── public/
+│
+├── tests/
+│
+└── README.md
+```
+
+---
+
+# 23. Estrutura Mobile
+
+A aplicação Flutter poderá seguir:
+
+```text
+mobile/
+│
+├── lib/
+│   ├── core/
+│   ├── models/
+│   ├── services/
+│   ├── repositories/
+│   ├── database/
+│   ├── synchronization/
+│   ├── screens/
+│   ├── widgets/
+│   └── main.dart
+│
+├── test/
+│
+└── README.md
+```
+
+---
+
+# 24. Estrutura Geral do Repositório
+
+O GitHub poderá utilizar um único repositório inicialmente:
+
+```text
+sicm/
+│
+├── backend/
+├── web/
+├── mobile/
+├── docs/
+├── scripts/
+├── database/
+├── .gitignore
+└── README.md
+```
+
+Essa estrutura facilita o acompanhamento do projeto durante a fase de desenvolvimento.
+
+---
+
+# 25. Diretório docs
+
+Toda documentação criada durante a engenharia do software deverá ficar organizada.
+
+Exemplo:
+
+```text
+docs/
+│
+├── 01-visao-geral.md
+├── 02-requisitos.md
+├── 03-processo-negocio.md
+├── 04-casos-de-uso.md
+├── 05-modelagem-dados.md
+├── 06-arquitetura-sistema.md
+├── 07-stack-tecnologica.md
+└── ...
+```
+
+Assim, a documentação fará parte do próprio projeto.
+
+---
+
+# 26. Controle de Versão
+
+O projeto utilizará Git.
+
+Fluxo básico:
+
+```text
+Alteração
+   ↓
+git add
+   ↓
+git commit
+   ↓
+git push
+   ↓
+GitHub
+```
+
+Os commits deverão ser objetivos.
+
+Exemplos:
+
+```text
+feat: criar modelo de material
+feat: implementar cadastro de fornecedor
+feat: criar endpoint de conferência
+fix: corrigir validação de quantidade
+docs: atualizar modelagem de dados
+test: adicionar testes de conferência
+```
+
+---
+
+# 27. Estratégia de Branches
+
+Inicialmente será adotada uma estrutura simples:
+
+```text
+main
+ │
+ └── develop
+```
+
+Para funcionalidades maiores:
+
+```text
+feature/nome-da-funcionalidade
+```
+
+Exemplo:
+
+```text
+feature/cadastro-materiais
+feature/conferencia-mobile
+feature/sincronizacao-offline
+feature/dashboard-produtividade
+```
+
+A estratégia poderá ser simplificada ou expandida conforme o projeto crescer.
+
+---
+
+# 28. Banco e Migrações
+
+As alterações estruturais do banco serão controladas por migrações.
+
+Será utilizado Alembic no backend.
+
+Fluxo:
+
+```text
+Modelo Python
+      ↓
+Migração
+      ↓
+Alembic
+      ↓
+PostgreSQL
+```
+
+Isso evitará alterações manuais descontroladas no banco.
+
+---
+
+# 29. Testes
+
+O sistema deverá possuir testes desde as primeiras funcionalidades.
+
+### Backend
+
+Pytest.
+
+### Web
+
+Vitest e testes de componentes conforme necessidade.
+
+### Mobile
+
+Flutter Test.
+
+### Testes de integração
+
+Deverão verificar a comunicação:
+
+```text
+API
+ ↓
+Banco
+```
+
+e posteriormente:
+
+```text
+Mobile
+ ↓
+API
+ ↓
+Banco
+```
+
+---
+
+# 30. Testes de Regras de Negócio
+
+As regras críticas deverão possuir testes.
+
+Exemplo:
+
+```text
+Material correto
+→ CONFORME
+
+Material incorreto
+→ DIVERGÊNCIA
+
+Quantidade correta
+→ CONFORME
+
+Quantidade inferior
+→ DIVERGÊNCIA
+
+Quantidade superior
+→ DIVERGÊNCIA
+```
+
+Também deverá existir teste para:
+
+```text
+Conferência totalmente conforme
+→ Aprovação automática
+```
+
+e:
+
+```text
+Conferência com divergência
+→ Aguardar análise
+```
+
+---
+
+# 31. Analytics
+
+A primeira camada analítica será construída utilizando:
+
+```text
+PostgreSQL
+   +
+SQL
+   +
+Python
+```
+
+Python poderá utilizar:
+
+* Pandas;
+* bibliotecas estatísticas;
+* ferramentas de visualização.
+
+A camada de Analytics deverá ser desenvolvida somente depois que os dados operacionais estiverem corretamente estruturados.
+
+---
+
+# 32. Data Science
+
+A Ciência de Dados será uma camada posterior.
+
+Stack prevista:
+
+```text
+Python
+Pandas
+NumPy
+Scikit-learn
+Jupyter
+```
+
+O objetivo inicial não será criar Machine Learning imediatamente.
+
+A evolução deverá ser:
+
+```text
+Dados
+ ↓
+Qualidade dos dados
+ ↓
+Indicadores
+ ↓
+Análise
+ ↓
+Hipóteses
+ ↓
+Modelagem
+ ↓
+Machine Learning
+```
+
+---
+
+# 33. Armazenamento de Arquivos
+
+Arquivos como fotografias deverão ser tratados separadamente do banco transacional.
+
+Estrutura:
+
+```text
+PostgreSQL
+   │
+   └── metadados
+          │
+          ▼
+Armazenamento de objetos
+          │
+          └── imagem
+```
+
+A tecnologia exata do armazenamento poderá ser definida durante a implementação.
+
+---
+
+# 34. Ambientes
+
+O projeto deverá considerar inicialmente:
+
+```text
+DESENVOLVIMENTO
+       ↓
+TESTE
+       ↓
+PRODUÇÃO
+```
+
+Durante o início do projeto, o ambiente de desenvolvimento poderá ser executado localmente.
+
+---
+
+# 35. Configuração por Ambiente
+
+Informações específicas de ambiente não deverão ficar diretamente no código.
+
+Exemplos:
+
+```text
+DATABASE_URL
+SECRET_KEY
+JWT_SECRET
+STORAGE_URL
+API_URL
+```
+
+Essas configurações deverão ser fornecidas por variáveis de ambiente.
+
+---
+
+# 36. Containerização
+
+Docker não será obrigatório na primeira etapa.
+
+A prioridade será:
+
+1. construir;
+2. entender;
+3. testar;
+4. documentar;
+5. estabilizar.
+
+Posteriormente, Docker poderá ser incorporado para:
+
+* padronização;
+* desenvolvimento;
+* testes;
+* deploy.
+
+---
+
+# 37. Monitoramento Futuro
+
+A arquitetura deverá permitir posteriormente monitorar:
+
+* disponibilidade da API;
+* erros;
+* tempo de resposta;
+* falhas de sincronização;
+* erros de banco;
+* armazenamento;
+* consumo de recursos.
+
+Essa camada não precisa ser implementada no primeiro MVP.
+
+---
+
+# 38. Segurança Técnica
+
+A primeira versão deverá considerar:
+
+```text
+HTTPS
+JWT
+Hash de senha
+Controle de acesso
+Validação de entrada
+SQL parametrizado/ORM
+Auditoria
+Controle de arquivos
+Variáveis de ambiente
+```
+
+Não deverão existir credenciais sensíveis diretamente no código-fonte.
+
+---
+
+# 39. Integração Web/API
+
+Fluxo:
+
+```text
+Usuário
+   ↓
+React
+   ↓
+HTTP/HTTPS
+   ↓
+FastAPI
+   ↓
+Service
+   ↓
+Repository
+   ↓
+PostgreSQL
+```
+
+Resposta:
+
+```text
+PostgreSQL
+   ↓
+Repository
+   ↓
+Service
+   ↓
+FastAPI
+   ↓
+JSON
+   ↓
+React
+   ↓
+Usuário
+```
+
+---
+
+# 40. Integração Mobile/API
+
+Fluxo online:
+
+```text
+Usuário
+   ↓
+Flutter
+   ↓
+API
+   ↓
+FastAPI
+   ↓
+PostgreSQL
+```
+
+Fluxo offline:
+
+```text
+Usuário
+   ↓
+Flutter
+   ↓
+SQLite
+   ↓
+Fila local
+   ↓
+Internet
+   ↓
+API
+   ↓
+PostgreSQL
+```
+
+---
+
+# 41. Arquitetura Completa
+
+A stack poderá ser visualizada assim:
+
+```text
+                         USUÁRIOS
+                            │
+              ┌─────────────┴─────────────┐
+              │                           │
+              ▼                           ▼
+           REACT                       FLUTTER
+            WEB                         MOBILE
+              │                           │
+              └─────────────┬─────────────┘
+                            │
+                            ▼
+                     FASTAPI / REST
+                            │
+          ┌─────────────────┼─────────────────┐
+          │                 │                 │
+          ▼                 ▼                 ▼
+       AUTH            BUSINESS           EVENTS
+                         RULES
+          │                 │                 │
+          └─────────────────┼─────────────────┘
+                            │
+                            ▼
+                       SQLALCHEMY
+                            │
+                            ▼
+                       POSTGRESQL
+                            │
+                ┌───────────┴───────────┐
+                │                       │
+                ▼                       ▼
+          OPERAÇÃO/HISTÓRICO       ANALYTICS
+                                        │
+                                        ▼
+                                   DATA SCIENCE
+```
+
+---
+
+# 42. Stack Mínima do MVP
+
+Para evitar complexidade inicial, o MVP poderá começar somente com:
+
+```text
+Python
+FastAPI
+SQLAlchemy
+Pydantic
+PostgreSQL
+React
+TypeScript
+Flutter
+Dart
+SQLite
+Git
+GitHub
+Pytest
+```
+
+Não será necessário implementar inicialmente:
+
+* Kubernetes;
+* microsserviços;
+* mensageria complexa;
+* Data Warehouse;
+* Machine Learning;
+* infraestrutura distribuída;
+* CI/CD avançado.
+
+---
+
+# 43. Arquitetura Modular
+
+Apesar de iniciar como uma aplicação única, o backend deverá ser organizado por módulos.
+
+Exemplo:
+
+```text
+auth
+usuarios
+materiais
+fornecedores
+locais
+documentos
+conferencias
+divergencias
+evidencias
+eventos
+sincronizacao
+analytics
+```
+
+Isso permite evolução futura sem transformar o sistema em um código monolítico desorganizado.
+
+---
+
+# 44. Estratégia de Desenvolvimento
+
+O SICM não será desenvolvido inteiro de uma vez.
+
+A ordem será:
+
+```text
+1. Ambiente
+      ↓
+2. Banco
+      ↓
+3. Backend
+      ↓
+4. Autenticação
+      ↓
+5. Cadastros
+      ↓
+6. Documentos
+      ↓
+7. Conferência
+      ↓
+8. Mobile
+      ↓
+9. Offline
+      ↓
+10. Sincronização
+      ↓
+11. Divergências
+      ↓
+12. Dashboards
+      ↓
+13. KPIs
+      ↓
+14. Analytics
+      ↓
+15. Ciência de Dados
+```
+
+---
+
+# 45. Primeira Versão Funcional
+
+O primeiro objetivo técnico não será criar todos os recursos.
+
+O primeiro fluxo funcional será:
+
+```text
+LOGIN
+  ↓
+CADASTRAR MATERIAL
+  ↓
+CADASTRAR FORNECEDOR
+  ↓
+CADASTRAR DOCUMENTO
+  ↓
+CRIAR CONFERÊNCIA
+  ↓
+ATRIBUIR CONFERENTE
+  ↓
+EXECUTAR CONFERÊNCIA
+  ↓
+VALIDAR MATERIAL
+  ↓
+REGISTRAR QUANTIDADE
+  ↓
+FINALIZAR
+  ↓
+REGISTRAR EVENTOS
+```
+
+Depois desse fluxo funcionando, serão adicionadas as exceções.
+
+---
+
+# 46. MVP 2
+
+Após o fluxo principal:
+
+```text
+DIVERGÊNCIAS
+    ↓
+EVIDÊNCIAS
+    ↓
+ANÁLISE
+    ↓
+RESOLUÇÃO
+```
+
+Depois:
+
+```text
+OFFLINE
+    ↓
+SINCRONIZAÇÃO
+```
+
+Depois:
+
+```text
+DASHBOARDS
+    ↓
+KPIs
+```
+
+---
+
+# 47. Princípio de Evolução
+
+O projeto deverá evoluir nesta lógica:
+
+```text
+MVP
+ ↓
+Operação confiável
+ ↓
+Rastreabilidade
+ ↓
+Automação
+ ↓
+Indicadores
+ ↓
+Analytics
+ ↓
+Predição
+ ↓
+Otimização
+```
+
+A prioridade é construir uma operação confiável antes de adicionar inteligência avançada.
+
+---
+
+# 48. Decisões Técnicas Registradas
+
+### Backend
+
+**Python + FastAPI**
+
+### Banco
+
+**PostgreSQL**
+
+### ORM
+
+**SQLAlchemy**
+
+### Validação
+
+**Pydantic**
+
+### Web
+
+**React + TypeScript**
+
+### Mobile
+
+**Flutter + Dart**
+
+### Offline
+
+**SQLite**
+
+### API
+
+**REST**
+
+### Autenticação
+
+**JWT**
+
+### Versionamento
+
+**Git + GitHub**
+
+### Testes
+
+**Pytest + Vitest + Flutter Test**
+
+### Analytics
+
+**SQL + Python**
+
+### Data Science futura
+
+**Pandas + NumPy + Scikit-learn**
+
+### Docker
+
+**Posterior**
+
+---
+
+# 49. Resultado do Documento
+
+Com este documento, o SICM passa a possuir uma definição tecnológica inicial completa:
+
+```text
+                    SICM
+                     │
+        ┌────────────┴────────────┐
+        │                         │
+       WEB                      MOBILE
+    React/TS                  Flutter/Dart
+        │                         │
+        └────────────┬────────────┘
+                     │
+                  REST API
+                  FastAPI
+                     │
+              Python/SQLAlchemy
+                     │
+                 PostgreSQL
+                     │
+             ┌───────┴───────┐
+             │               │
+        OPERACIONAL       EVENTOS
+                             │
+                             ▼
+                         ANALYTICS
+                             │
+                             ▼
+                       DATA SCIENCE
+```
+
+A arquitetura foi definida para permitir que o sistema comece simples, mas sem bloquear sua evolução futura.
+
+---
+
+## Status
+
+**Documento 07 — Arquitetura Técnica e Stack de Desenvolvimento: CONCLUÍDO — versão 0.1**
+
+### Próximo documento
+
+**DOCUMENTO 08 — Estrutura do Banco de Dados e DDL Inicial**
+
+O próximo passo será sair da modelagem conceitual e começar a construir o banco de verdade.
+
+Serão definidos:
+
+* tabelas PostgreSQL;
+* campos;
+* tipos de dados;
+* PKs;
+* FKs;
+* índices;
+* constraints;
+* enums/status;
+* timestamps;
+* UUIDs;
+* relacionamentos;
+* auditoria;
+* estrutura inicial de migração;
+* script SQL inicial.
+
+A partir do Documento 08, começaremos efetivamente a transformar a engenharia definida até aqui em **código executável**.
+::
